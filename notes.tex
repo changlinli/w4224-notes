@@ -1,0 +1,216 @@
+\documentclass{article}
+
+\usepackage{amsmath, amssymb, amsfonts, amsthm, booktabs, verbatim, mathtools, listings, xcolor}
+\usepackage{hyperref}
+
+%\numberwithin{equation}{section}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{definition}{Definition}
+\newtheorem{problem}{Problem}
+\newtheorem{example}{Example}
+
+% Surrounding angular brackets
+\newcommand{\surang}[1]{\langle #1 \rangle}
+\makeatletter
+\newcommand{\@giventhatstar}[2]{#1\,\middle|\,#2}
+\newcommand{\@giventhatnostar}[3][]{#1(#2\,#1|\,#3#1)}
+\newcommand{\giventhat}{\@ifstar\@giventhatstar\@giventhatnostar}
+\makeatother
+\newcommand{\probof}[1]{\text{Pr}\left( #1 \right)}
+\newcommand{\pdens}[1]{\text{p}\left( #1 \right)}
+\newcommand{\variance}[1]{\text{Var}\left( #1 \right)}
+
+\lstset{ %
+  language=R,                     % the language of the code
+  basicstyle=\footnotesize,       % the size of the fonts that are used for the code
+  numbers=left,                   % where to put the line-numbers
+  numberstyle=\tiny\color{gray},  % the style that is used for the line-numbers
+  stepnumber=1,                   % the step between two line-numbers. If it's 1, each line
+                                  % will be numbered
+  numbersep=5pt,                  % how far the line-numbers are from the code
+  backgroundcolor=\color{white},  % choose the background color. You must add \usepackage{color}
+  showspaces=false,               % show spaces adding particular underscores
+  showstringspaces=false,         % underline spaces within strings
+  showtabs=false,                 % show tabs within strings adding particular underscores
+  frame=single,                   % adds a frame around the code
+  rulecolor=\color{black},        % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. commens (green here))
+  tabsize=2,                      % sets default tabsize to 2 spaces
+  captionpos=b,                   % sets the caption-position to bottom
+  breaklines=true,                % sets automatic line breaking
+  breakatwhitespace=false,        % sets if automatic breaks should only happen at whitespace
+  title=\lstname,                 % show the filename of files included with \lstinputlisting;
+                                  % also try caption instead of title
+  keywordstyle=\color{blue},      % keyword style
+  commentstyle=\color{red},   % comment style
+  stringstyle=\color{black},      % string literal style
+  escapeinside={\%*}{*)},         % if you want to add a comment within your code
+  morekeywords={*,...}            % if you want to add more keywords to the set
+} 
+
+\begin{document}
+
+\section{Experimental Design and Missing Data}
+
+\subsection{Propensity Scores}
+
+\begin{definition}
+	Given an inclusion vector $I = (I_0, I_1, \ldots, I_n)$, the $i$th propensity score is defined to be
+	\begin{equation}
+		\pi_i = \pdens{\giventhat*{I_i}{x}}
+		\label{eq:propensity_def}
+	\end{equation}
+	that is the $i$th propensity score $\pi _i$ is the marginal distribution of the $ith$ component of the inclusion vector.
+\end{definition}
+
+What does it mean for the propensity scores to be a good summary of the data/inclusion vector?
+It means
+\begin{equation}
+	\pdens{\giventhat*{I}{x}} = \pdens{\giventhat*{I}{\pi _1, \ldots, \pi _n}}
+	\label{eq:propensity_is_good_1}
+\end{equation}
+or equivalently (assuming the existence of a PDF)
+\begin{equation}
+	\exists g: g(\pdens{\giventhat*{I_1}{x}}, \ldots, \pdens{\giventhat*{I_n}{x}}) = f(I_1, \ldots, I_n)
+\end{equation}
+where $f$ is the joint PDF of the inclusion vector components.
+In other words, the propensity scores (marginal distributions) are a good
+summary of the inclusion vector if the joint distribution over all components
+can be completely determined by the marginal distributions of each component.
+
+\begin{example}[Where propensity score is a good summary of the data]
+	The easiest example of where the propensity score is a good summary of
+	the data is when the components of the inclusion vector are independent
+	from each other (because in that case the joint distribution is just
+	the product of the marginals).
+
+	An example of that is the simple random
+\end{example}
+
+\begin{example}[Missing fish]
+\end{example}
+
+\begin{example}[Exercise~8.5]
+\end{example}
+
+\section{Decision Analysis}
+
+Decision analysis follows the following four steps (page~$238$ in Gelman et. al).
+\begin{enumerate}
+	\item 
+		Enumerate the space of all possible decisions and outcomes $x$
+	\item
+		Determine the probability of $x$ for each decision $d$
+\end{enumerate}
+
+We have the Oscar problem from homework (and also the back of Chapter 9).
+
+\begin{example}[Pizza Shop: \href{http://www2.gsu.edu/~dscgpz/mgs3100/exercise3.pdf}{http://www2.gsu.edu/~dscgpz/mgs3100/exercise3.pdf}]
+You own a pizza shop in a downtown mini-mall. It is Saturday morning, and you
+are trying to decide how many pizzas to make to meet today's lunch
+hour demand. Based upon your experience with Saturdays, you think
+that the probability of being able to sell 20 pizzas is 0.2, of
+being able to sell 40 pizzas is 0.3, and of being able to sell 50 pizzas is
+0.5.
+
+Suppose a pizza sells for \$10 and has an incremental cost of
+\$4.25. If you have leftover pizzas, you can sell them to the
+homeless shelter for \$1.25 each. If demand exceeds the number of
+pizzas you have prepared, every disappointed customer costs you \$0.25 worth of
+lost customer goodwill. 
+
+How many pizzas should you make?
+\end{example}
+\begin{proof}
+	The payoff $P_n$ for $n$ pizzas with $M$ customers is calculated as
+	\begin{equation}
+		P_n = -4.25 n + 10 \min(M, n) + 1.25 \max(n - M, 0) - 0.25 \max(M - n, 0)
+	\end{equation}
+	The expected number of customers is $20 \cdot 0.2 + 40 \cdot 0.3 + 50 \cdot 0.5 = 41$.
+
+	Therefore, the expected value of your payoff given $n$ pizzas made is
+	\begin{align*}
+		E(P_n) 
+		&= E(-4.25 n + 10 \min(M, n) + 1.25 \max(n - M, 0) - 0.25 \max(M - n, 0))\\
+		&= -4.25n + 10 \min(E(M), n) + 1.25 \max(n - E(M), 0) - 0.25 \max (E(M) - n, 0)\\
+		&= -4.25n + 10 \min(41, n) + 1.25 \max (n - 41, 0) - 0.25 \max (41 - n, 0)
+	\end{align*}
+
+	If we squint at the maxes and mins, it's apparent that this is a monotonically increasing linear function up to $41$ and then sharply decreases afterwards.
+
+	Therefore to maximize our expected payoff, we should make $41$ pizzas, which will give us a payoff of $235.75$.
+	This should probably accord well with your intuition, make as many pizzas as expected people who will show up.
+
+	In general if you have a linear combination of costs, you should always shoot to make as many pizzas as customers you think will show up (because expected value obeys linearity).
+\end{proof}
+
+\begin{example}
+\end{example}
+
+\section{Simulating Distributions}
+
+When solving for
+
+The other way of doing things is numerical integration (given how little of
+this was covered in class, I would be surprised if it came up) to calculate
+both the normalizing constant (denominator in Bayes' Theorem) as well as
+various events of your posterior distribution.
+
+The method for simulating distributions generally all follow this layout:
+\begin{enumerate}
+	\item 
+		Have some sort of distribution (source distribution) from which you know how to sample and of which you know its (unnormalized) probability density function
+	\item
+		Know the (unnormalized) probability density function of the distribution you wish to simulate (target distribution)
+	\item
+		Figure out some way of translating draws of your source distribution to your target distribution based on the relationship between the former and latter's probability density function
+\end{enumerate}
+
+The only difference among our different simulation methods is the third point.
+
+\subsection{Rejection Sampling}
+
+We 
+
+\subsection{Markov Chain Monte Carlo}
+
+The jump distributions we have almost always used in class and on our homework has been a state-independent jump distribution.
+That is the jump distribution $J$ such that $J\left( \giventhat*{\theta ^\star}{\theta ^{s - 1}} \right) = J\left( \giventhat*{\theta ^\star} \right)$.
+
+In the case of MCMC algorithms,
+
+Note that such a jump distribution requires the full ratio function of the Metropolis-Hastings algorithm (and not the simplified symmetric version in just Metropolis)!
+In particular
+\begin{align*}
+	J\left( \giventhat*{\theta ^\star}{\theta ^{s - 1}} \right)
+	&= J\left( \theta ^\star \right)\\
+	&\not= J\left( \theta ^{s - 1} \right)
+\end{align*}
+which means that our jumps are not symmetric.
+
+\subsubsection{Gibbs Sampler}
+
+We can use the Gibbs sampler to help sample from
+\begin{example}[Coagulation 11.6]
+	\label{example:coagulation}
+	We have a hierarchical normal model with a series of random variables $\theta$s $\theta_1, \ldots, \theta_n$ that all share a common variance $\sigma ^2$ from which we draw $y_{i, 1}, \ldots, y_{j, m} \sim _\text{iid} N(\theta _i, \sigma ^2)$.
+	For each $\theta _i$, we have a prior such that $\theta _i \sim N(\mu, \tau ^2)$.
+	Finally for $\mu$ we have a hyperprior of $\pdens{mu, \log \sigma ^2, \log \tau} \propto \tau$.
+
+	Note that it is equivalent to say $\pdens{mu, \log \sigma ^2, \log \tau} \propto \tau$ and the joint distribution $mu, \log \sigma ^2, \tau$ is uniform.
+\end{example}
+
+It is perhaps instructive to compare Example~\ref{example:coagulation} with the original problem in Section~5.4 of Gelman et al.
+Note in that example we have $\sigma ^2$ fixed (instead of unknown) and have as a hyperprior instead $\pdens{mu, \tau} \propto \pdens{\tau}$ with a uniform marginal prior on $\tau$.
+
+\begin{example}[Problem 11.1 on page~$291$ of Gelman et al.]
+\end{example}
+
+\begin{example}[Problem 11.4 on page~$292$ of Gelman et al.]
+\end{example}
+
+\begin{example}[Problem 11.6 on page~$292$ of Gelman et al.]
+\end{example}
+
+\end{document}
