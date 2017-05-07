@@ -3,3 +3,5 @@ notes.pdf
 *.log
 *.out
 *.aux
+*.toc
+consolidated_notes.pdf
