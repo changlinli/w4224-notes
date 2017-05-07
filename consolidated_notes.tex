@@ -10,6 +10,7 @@
 \newtheorem{definition}{Definition}
 \newtheorem{problem}{Problem}
 \newtheorem{example}{Example}
+\newtheorem{remark}{Remark}
 
 % Surrounding angular brackets
 \newcommand{\surang}[1]{\langle #1 \rangle}
@@ -50,6 +51,16 @@
 } 
 
 \begin{document}
+
+\tableofcontents
+
+\section{Hierarchical Modeling}
+
+Hierarchical modeling is a way of expanding the expressiveness of your model while keeping it computationally feasible.
+For a hierarchical model of $n$ levels, for each $i$th level, we assume that that level has priors whose parameters are drawn from the $i + 1$-th level (the priors for the $n$th level are fixed at model creation time and termed the ``hyperpriors'')
+In most applications we stick with $n = 2$ (and certainly do so in this class).
+
+\section{Model Comparison}
 
 \section{Experimental Design and Missing Data}
 
@@ -148,30 +159,73 @@ How many pizzas should you make?
 \begin{example}
 \end{example}
 
-\section{Simulating Distributions}
+\section{Sampling Distributions}
 
-When solving for
+Often Bayesian statistics results in distributions which are not analytically convenient to deal with (indeed outside of relying on conjugate priors this is the norm).
+We therefore often turn to simulation via sampling to arrive at numerical solutions to our problems.
 
-The other way of doing things is numerical integration (given how little of
-this was covered in class, I would be surprised if it came up) to calculate
-both the normalizing constant (denominator in Bayes' Theorem) as well as
-various events of your posterior distribution.
+\begin{remark}
+	Numerical approximation of Bayesian methods doesn't require sampling.
 
-The method for simulating distributions generally all follow this layout:
+	The other way of doing things is numerical integration (given how little of
+	this was covered in class, I would be surprised if it came up) to calculate
+	both the normalizing constant (denominator in Bayes' Theorem) as well as
+	various events of your posterior distribution.
+
+	Sampling is often more convenient and flexible though than numerical approximation and is the current state of the art in statistical numerical methods.
+\end{remark}
+
+Sampling from a distribution, however, is not as trivial an exercise as it may seem at first.
+Knowing the PDF of your distribution is necessary, but it may not be obvious how to go from a PDF to an actual sampling strategy.
+
+Here we'll outline various strategies in roughly ``ascending'' order.
+That is we'll start with fairly naive strategies, outline examples where they work well and then examples where they do not.
+Then we'll present another strategy which deals with some of the shortcomings of the previous one.
+
+That is not to say the final strategy we present is the absolute best strategy 
+
+The method for sampling from a distributions generally all follow this layout:
 \begin{enumerate}
-	\item 
-		Have some sort of distribution (source distribution) from which you know how to sample and of which you know its (unnormalized) probability density function
 	\item
+		(Source Distribution):
+		Have some sort of distribution (source distribution) from which you know how to sample and of which you know its (unnormalized) probability density function.
+		We often implicitly assume alongside an explicitly listed source distribution the existence of a way to sample from the $\text{Uniform}(0, 1)$ distribution.
+	\item
+		(Target Distribution):
 		Know the (unnormalized) probability density function of the distribution you wish to simulate (target distribution)
 	\item
+		(Translation Strategy):
 		Figure out some way of translating draws of your source distribution to your target distribution based on the relationship between the former and latter's probability density function
 \end{enumerate}
 
 The only difference among our different simulation methods is the third point.
 
+Note that these steps are not necessarily performed in this chronological order.
+In particular, it is often the case that details of your target distribution and/or translation strategy influence which kind of source distribution you'd like to use.
+
+\subsection{Grid Approximation}
+
+The first method we'll briefly cover is grid approximation, which should be familiar from the very beginning of this course.
+Here the source distribution is a discrete approximation with bounded support of your target distribution.
+To actually sample from this source distribution, we then construct an inverse CDF of this discrete approximation.
+We can then sample from a $\text{Uniform}(0, 1)$ distribution and then take the resulting samples and pass them to the inverse CDF to generate samples of our discrete approximation.
+
+Here our translation strategy is more or less ``wave your hands'' and assume that your discrete approximation is a good approximation of your target distribution and therefore the sample generated from the discrete approximation is a good approximation of a sample generated from your target distribution.
+
+\begin{itemize}
+	\item[Pros]
+		Simple and straightforward, both to implement and in its theoretical justification.
+		Any discrete approximation with bounded support can be made arbitrary close to the target distribution by simply decreasing the size of the discretization step and increasing the bounds of its support.
+	\item[Cons]
+		Can be (potentially very) inaccurate in the presence of ``spiky'' target distributions and/or distributions that are ``spread out'' (i.e. that have significantly non-zero values over a large subset of its domain).
+		This is a result of deficiencies in the discretization step and bounds of the support respectively.
+		The solution to these deficiencies, i.e. decreasing the size of the discretization step and increasing the bounds of the support can drastically increase computational resources required to calculate the discrete inverse CDF, especially in the presence of multivariate distributions with many variates.
+\end{itemize}
+
 \subsection{Rejection Sampling}
 
-We 
+The grid approximation method can be problematic because of its discrete and bounded nature, so why not try to tackle that by having a continuous source distribution?
+That is exactly what the rejection sampling method does.
 
 \subsection{Markov Chain Monte Carlo}
 
@@ -191,6 +245,8 @@ which means that our jumps are not symmetric.
 
 \subsubsection{Gibbs Sampler}
 
+The Gibbs sampler is great when we can break down
+
 We can use the Gibbs sampler to help sample from
 \begin{example}[Coagulation 11.6]
 	\label{example:coagulation}
@@ -200,6 +256,14 @@ We can use the Gibbs sampler to help sample from
 
 	Note that it is equivalent to say $\pdens{mu, \log \sigma ^2, \log \tau} \propto \tau$ and the joint distribution $mu, \log \sigma ^2, \tau$ is uniform.
 \end{example}
+
+\begin{example}[Faculty publication rates, Homework~4.5]
+	Imagine that we have a faculty of $n$ members at some university for which we have a simple random sample of $k$ faculty members and the number of publications they have made where $k < n$.
+	Come up with a $95\%$ posterior interval for the total number of refereed publications 
+	For one of our homework problems we had an extremely naive model for trying to infer 
+\end{example}
+\begin{proof}
+\end{proof}
 
 It is perhaps instructive to compare Example~\ref{example:coagulation} with the original problem in Section~5.4 of Gelman et al.
 Note in that example we have $\sigma ^2$ fixed (instead of unknown) and have as a hyperprior instead $\pdens{mu, \tau} \propto \pdens{\tau}$ with a uniform marginal prior on $\tau$.
@@ -212,5 +276,15 @@ Note in that example we have $\sigma ^2$ fixed (instead of unknown) and have as 
 
 \begin{example}[Problem 11.6 on page~$292$ of Gelman et al.]
 \end{example}
+
+\appendix
+
+\section{Rough order as covered in class}
+
+\begin{enumerate}
+	\item
+	\item
+	\item
+\end{enumerate}
 
 \end{document}
