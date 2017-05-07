@@ -1,0 +1,146 @@
+\documentclass[10pt]{article}
+
+\usepackage{amsmath, amssymb, amsfonts, amsthm, booktabs, verbatim, mathtools, listings, xcolor}
+%\usepackage[top=1.25in, bottom=1.25in, left=0.5in, right=0.5in]{geometry}
+
+%\numberwithin{equation}{section}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{definition}{Definition}
+\newtheorem{problem}{Problem}
+\newtheorem{remark}{Remark}
+\newtheorem{example}{Example}
+
+% Surrounding angular brackets
+\newcommand{\surang}[1]{\langle #1 \rangle}
+\makeatletter
+\newcommand{\@giventhatstar}[2]{#1\,\middle|\,#2}
+\newcommand{\@giventhatnostar}[3][]{#1(#2\,#1|\,#3#1)}
+\newcommand{\giventhat}{\@ifstar\@giventhatstar\@giventhatnostar}
+\makeatother
+\newcommand{\probof}[1]{\text{Pr}\left( #1 \right)}
+\newcommand{\pdens}[1]{p\left( #1 \right)}
+\newcommand{\variance}[1]{\text{Var}\left( #1 \right)}
+\newcommand{\factorial}[1]{\left( #1 \right)!}
+\newcommand{\factoriall}[1]{#1!}
+
+\lstset{ %
+  language=R,                     % the language of the code
+  basicstyle=\footnotesize,       % the size of the fonts that are used for the code
+  numbers=left,                   % where to put the line-numbers
+  numberstyle=\tiny\color{gray},  % the style that is used for the line-numbers
+  stepnumber=1,                   % the step between two line-numbers. If it's 1, each line
+                                  % will be numbered
+  numbersep=5pt,                  % how far the line-numbers are from the code
+  backgroundcolor=\color{white},  % choose the background color. You must add \usepackage{color}
+  showspaces=false,               % show spaces adding particular underscores
+  showstringspaces=false,         % underline spaces within strings
+  showtabs=false,                 % show tabs within strings adding particular underscores
+  frame=single,                   % adds a frame around the code
+  rulecolor=\color{black},        % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. commens (green here))
+  tabsize=2,                      % sets default tabsize to 2 spaces
+  captionpos=b,                   % sets the caption-position to bottom
+  breaklines=true,                % sets automatic line breaking
+  breakatwhitespace=false,        % sets if automatic breaks should only happen at whitespace
+  title=\lstname,                 % show the filename of files included with \lstinputlisting;
+                                  % also try caption instead of title
+  keywordstyle=\color{blue},      % keyword style
+  commentstyle=\color{red},   % comment style
+  stringstyle=\color{black},      % string literal style
+  escapeinside={\%*}{*)},         % if you want to add a comment within your code
+  morekeywords={*,...}            % if you want to add more keywords to the set
+} 
+
+\begin{document}
+We return to Markov Chain Monte Carlo (Chapters 11-12).
+Our ideal is that we have $\theta ^1, \theta ^2, \ldots, \theta ^S \sim _\text{iid} \pdens{\giventhat*{\theta}{y}}$.
+
+In MCMC we do not have iid but instead have a partial realization of an ergodic Markov chain whose unique stationary distribution is $\pdens{\giventhat*{\theta}{y}}$.
+A Markov chain is ergodic if all states are aperiodic and positive recurrent, that is that there is a nonzero probability of exiting the state and the probability of an eventual return is $1$.
+
+MCMC algorithms are specified by their update rule, namely given that $\theta ^{t - 1}$ generate $\theta ^t$.
+Note that it is stationary if $\theta ^{t - 1} \sim \pdens{\giventhat*{\theta}{y}}$ and $\theta ^t \sim \pdens{\giventhat*{\theta}{t}}$.
+
+Why does ordinary monte carlo work?
+If $\theta ^1, \ldots, \sim _\text{iid} \pdens{\giventhat*{\theta}{y}}$ then we have that
+\begin{align*}
+	\frac{1}{S} \sum _{s = 1} ^S h(\theta ^s) &\stackrel{\text{almost surely}}{\rightarrow} \int h(\theta) \pdens{\giventhat*{\theta}{y}} d\theta\\
+\end{align*}
+as $S \to \infty$ by the Law of Large Numbers.
+
+If $\left\{ \theta ^S \right\}$ is an ergodic Markov Chain with invariant distribution $\pdens{\giventhat*{\theta}{y}}$ then
+\begin{align*}
+	\frac{1}{S} \sum _{s = 1} ^S h(\theta ^s) &\stackrel{\text{almost surely}}{\rightarrow} \int h(\theta) \pdens{\giventhat*{\theta}{y}} d\theta\\
+\end{align*}
+as $S \to \infty$ by the ergodic theorem.
+
+As a review for the MCMC algorithms that we have covered so far:
+\begin{enumerate}
+	\item 
+		Gibbs sampler
+		\begin{equation}
+			\theta _j ^t \sim \pdens{\giventhat*{\theta _j}{\theta _1 ^t, \ldots, \theta _{j - 1} ^t, \theta _{j + 1} ^{t - 1}, \ldots, \theta _d ^{t - 1}, y}}
+		\end{equation}
+	\item
+		Metropolis Hastings
+		Special cases:
+		\begin{enumerate}
+			\item 
+				If $J\left( \giventhat*{\theta _b}{\theta _a} = g\left( \theta _b \right) \right)$ it is an independence sampler (MHIS).
+			\item
+				If $J\left( \giventhat*{\theta _b}{\theta _a} \right) = J\left( \giventhat*{\theta _a}{\theta _b} \right)$ it's the Metropolis Random Walk (MRW) or Metropolis algorithm.
+		\end{enumerate}
+	\item
+		If one or more of the full conditionals
+		\begin{equation}
+			\pdens{\giventhat*{\theta _j}{\theta _1, \ldots, \theta _{j - 1}, \theta _{j + 1}, \ldots, \theta _d, y}}
+		\end{equation}
+		is not available, do Metropolis-Hastings update instead.
+		This technique goes by many names (Metropolised Gibbs, Metropolis-within-Gibbs, component-wise Metropolis-Hastings, etc.).
+	\item
+		Other variations:
+		Comments and questions.
+		\begin{remark}
+			What if we don't know $\pdens{\giventhat*{\theta}{y}}$ and only $q\left( \giventhat*{\theta}{y} \right) \propto \pdens{\giventhat*{\theta}{y}}$?
+			No problem! Since we only care about the following ratio, the normalizing constant is cancelled out.
+			\begin{equation}
+				\frac{q \left( \giventhat*{\theta ^\star}{y} \right)}{q\left( \giventhat*{\theta ^{t - 1}}{y} \right)} = \frac{\pdens{\giventhat*{\theta ^\star}{y}}}{\pdens{\giventhat*{\theta ^{t - 1}}{y}}}
+			\end{equation}
+		\end{remark}
+		\begin{remark}
+			How do we choose $J\left( \giventhat*{\theta _b}{\theta _a} \right)$?
+			MHIS is like rejection sampling and importance sampling, the closer $g\left( \theta \right)$ is to $\pdens{\theta}{y}$ the better.
+
+			For MRW, $\left( \giventhat*{\theta ^\star}{\theta ^{t - 1}} \right) \sim N\left( \theta ^{t - 1}, \sigma ^2 D \right)$ where $D$ is a tuning parameter.
+			Should we take $\sigma ^2$ to be a big number?
+			Propose big jumps?
+			No, if most jump proposals are to the tails of the target distribution, most will get rejected.
+
+			So do we want to take $\sigma ^2$ to be a small number, to guarantee that most proposals are accepted?
+			This is also inefficient because you're taking baby steps and not exploring the sample space well.
+			The selection of $\sigma ^2$ is a Goldilocks problem.
+
+			One approach is to have a target acceptance rate or an ``optimal'' acceptance rate (not really since it depends on the situation at hand) is about $0.44$ in one dimension and about $0.23$ in high dimensional problems.
+		\end{remark}
+\end{enumerate}
+
+Here's an example:
+\begin{example}
+	\begin{equation}
+		\pdens{\giventhat*{\theta}{y}} \propto e ^{- \theta}
+	\end{equation}
+	where $\left( \giventhat*{\theta}{y} \sim \text{Exp}(1) \right)$.
+	MHIS: $J\left( \giventhat*{\theta ^\star}{\theta ^{t - 1}} \right) = g\left( \theta ^\star \right) \propto e ^{- \lambda \theta^\star}$
+	with an $r$ factor
+	\begin{equation}
+		r = \frac{\pdens{\giventhat*{\theta}{y}}}{\pdens{\giventhat*{\theta ^t}{y}}} \frac{g\left( \theta ^t \right)}{g \left( \theta ^\star \right)} = \frac{e ^{-\theta ^\star}}{e ^{- \theta ^{t - 1}}} \frac{e ^{-\lambda \theta^{t - 1}}}{e ^{-\lambda \theta ^\star}} = \text{exp}\left( \left( 1 - \lambda \right) \left( \theta ^{t - 1} - \theta ^\star \right) \right)
+	\end{equation}
+	MRW: $\left( \giventhat*{\theta ^\star}{\theta ^{t - 1}} \right) \sim N (\theta ^{t - 1}, \sigma ^2)$
+	where
+	\begin{equation}
+		r = \frac{\pdens{\theta ^\star}{y}}{\pdens{\giventhat*{\theta ^{t - 1}}{y}}} = \text{exp}\left( \theta ^{t - 1} - \theta ^\star \right) I_{\theta^\star > 0}
+	\end{equation}
+\end{example}
+
+\end{document}

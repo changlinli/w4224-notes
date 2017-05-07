@@ -1,0 +1,179 @@
+%        File: notes.tex
+%     Created: Thu Jan 19 06:00 PM 2017 E
+% Last Change: Thu Jan 19 06:00 PM 2017 E
+%
+\documentclass[a4paper]{article}
+
+\usepackage{amsmath, amssymb, amsthm, listings}
+
+\begin{document}
+
+The easiest way to question 5a is the following:
+
+\begin{lstlisting}
+	qnbinom(c(0.025, 0.975), size = sum(y), prob = length(y) / (length (y) + 1))
+\end{lstlisting}
+which should yield
+\begin{lstlisting}
+	[14, 34]
+\end{lstlisting}
+
+\begin{lstlisting}
+	thetasim <-rgamma(1000, shape = size(y), rate = length(y))
+	ytildesim <- rpois(1000, thetasim)
+	quantile(ytildesim, c(0.025, 0.975))
+\end{lstlisting}
+
+The second approach is subject to Monte Carlo error. However, note that Monte Carlo goes away because you can always increase the number of simulations.
+
+Note though that the second method is more general (than finding a closed form solution which would've been an alternative way of solving the question).
+
+To study $p(\theta \mid y)$, we can always simulate
+\begin{equation}
+	\theta ^1, \ldots, \theta ^{S'} \sim p\left( \theta \mid y \right)
+\end{equation}
+where $S' = 1000$ say.
+To study $p\left( \tilde{y} \mid y \right)$ we'll do
+\begin{equation}
+	p\left( \tilde{y} \mid y \right) = \int p\left( \tilde{y} \mid y \right) p\left( \theta \mid y \right) d \theta
+\end{equation}
+so
+\begin{equation}
+	\theta{y} ^S \sim p\left( \tilde{y} \mid \theta ^{S} \right)
+\end{equation}
+where $S = 1, \ldots, S'$.
+
+We'll do this again and again in this course (indeed this shows up in problem 7).
+
+So we have
+\begin{align}
+	y_0 \mid p_0 &\sim \text{Binomial}(n_0, p_0) \\
+	y_1 \mid p_1 &\sim \text{Binomial}(n_1, p_1)
+\end{align}
+where
+\begin{equation}
+	p_0, p_1 \sim \text{iid} \text{Uniform}(0, 1)
+\end{equation}`
+where
+\begin{equation}
+	p_0 \mid y \sim \text{Beta}(y_0 + 1, n_0 - y_0 - 1)
+\end{equation}
+and
+\begin{equation}
+	p_1 \mid y \sim \text{Beta}(y_1 + 1, n_1 - y_1 + 1)
+\end{equation}
+with the definition of odds ratio as
+\begin{equation}
+	p = \frac{\frac{p_1}{1 - p_1}}{\frac{p_0}{1 - p_0}}
+\end{equation}
+what is the distribution of $p \mid y$?
+
+Well we can use R!
+
+\begin{lstlisting}
+	p1.sim <- rbeta(1000, 26, 254)
+	p0.sim <- rbeta(1000, 38, 246)
+	rho.sim <- p1.sim / (1 - p1.sim) / p0.sim * (1 - p0.sim)
+\end{lstlisting}
+gives samples from posterior of $p$ (note that your answer is probably that the treatment has somewhat good effects but it's not that clear).
+
+Note that for homework problem 6, in order to do it, you'll probably want to read ahead to Section 3.2.
+
+Homework 2 will be due in class Tuesday Feb 14. It should appear on Courseworks by tomorrow.
+
+Note that even though the homework will not be specifically problems in the book, they will be closely inspired by the following problems.
+\begin{itemize}
+	\item 
+		3.11
+	\item
+		3.12
+	\item
+		2.11
+	\item
+		4.1
+	\item
+		4.15
+	\item
+		5.7
+	\item
+		5.13
+	\item
+		5.15
+\end{itemize}
+
+So the agenda for our lecture is going to be normal models (sections 3.1 - 3.3)
+
+\begin{enumerate}
+	\item 
+		$N(\mu, \sigma ^2)$ where $\sigma ^2$ is known.
+	\item
+		$N(\mu, \sigma ^2)$ where $\mu$ is known.
+	\item
+		$N(\mu, \sigma ^2)$ where neither is known.
+\end{enumerate}
+
+For each we'll define
+\begin{enumerate}
+	\item 
+		the case with a conjugate prior
+	\item
+		the case with a non-informative prior
+\end{enumerate}
+
+The first case we've done before, but just to jog our memories:
+\begin{align}
+	p(y_1, \ldots, y_n \mid \mu) &\propto \text{exp}\left\{ -\frac{1}{2 \sigma ^2} \sum \left( y_i - \mu \right)^2 \right\} \\
+	&\propto \text{exp}\left\{ -\frac{n\left( \bar{y} - \mu \right)^2}{2 \sigma ^2} \right\}
+\end{align}
+
+So let's do our conjugate prior where
+\begin{equation}
+	p\left( \mu \right) \propto \text{exp}\left\{ - \frac{1}{2 \tau _0 ^2}\left( \mu - \mu_0 \right) ^2 \right\}
+\end{equation}
+then
+\begin{align}
+	p\left( \mu \mid y \right) \propto \text{exp}\left\{ -\frac{1}{2 \tau_n ^2}\left( \mu - \mu _n \right) ^2 \right\}\\
+	\tau _n ^2 = \left( \frac{1}{\tau _0} + \frac{n}{\sigma ^2} \right)\\
+	\mu _n = \tau _n ^2 \left(  \right)
+\end{align}
+
+Then for 1b
+we do
+%\begin{align}
+	%p\left( \mu \right) \propto 1\\
+	%p\left( \mu \mid y \right) \propto p\left( y \mid \mu \right) \propto exp\left\{ - \frac{n \left( \mu - \bar{y} \right)^2}{2 \sigma ^2} \right\}\\
+	%%\mu \mid y \sim N\left( \bar{y}, \frac{\sigma ^2}{n} \right)
+%\begin{align}
+
+Note that for notational purposes we'll say $V = \frac{1}{n} \sum \left( y_i - \mu \right) ^2$
+
+I GOT LAZY HERE AND DIDN'T NOTE THE REST OF 1.
+
+In the book, for 2a, they use the inverse gamma for the conjugate prior. Here's an alternate presentation of the same idea:
+
+\begin{equation}
+	p\left( \sigma ^2 \right) \propto \left( \sigma ^2 \right) ^{- \left( \frac{\nu_0}{2} + 1 \right)} \text{exp}\left\{ \frac{\nu_0 \sigma _0 ^2}{2 \sigma ^2} \right\}
+\end{equation}
+in other words
+\begin{equation}
+	\sigma ^2 \sim \text{Inv-$\chi ^2$}\left( \nu_0, \sigma _0 ^2 \right)
+\end{equation}
+
+Any scale inverse $\chi ^2$ distribution is an inverse gamma distribution and vice versa.
+
+Also note that in some presentations we deal only with precision rather than variance and in that case we end up just using normal gamma distributions instead of using inverse gamma.
+
+The posterior is
+
+\begin{align}
+	p\left( \sigma ^2 \mid y \right) &\propto p\left( \sigma^2 \right)p\left( y \mid \sigma ^2 \right)\\
+	&\propto \left( \sigma ^2 \right)^{-\left( \alpha + \frac{n}{2} + 1 \right)} \text{exp}\left\{ \frac{-\beta + n \frac{v}{2}}{\sigma ^2} \right\}\\
+	&\rightarrow \sigma ^2 \mid y \sim \text{Inverse Gamma}\left( \alpha + \frac{n}{2}, \beta + n \frac{v}{2} \right)
+\end{align}
+
+Alternatively, via a presentation using the inverse $\chi^2$ distribution, we arrive at the fact that \emph{the posterior scale is the weighted average of the prior scale and sample variance weighted by the respective degrees of freedoms}.
+
+Our data is the number of observations, the sample variance $v$.
+Our prior is $\nu _0$ observations with a sample variance of $\sigma _0 ^2$.
+
+\end{document}

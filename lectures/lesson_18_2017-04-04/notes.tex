@@ -1,0 +1,212 @@
+\documentclass{article}
+
+\usepackage{amsmath, amssymb, amsfonts, amsthm, booktabs, verbatim, mathtools, listings, xcolor}
+
+%\numberwithin{equation}{section}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{definition}{Definition}
+\newtheorem{problem}{Problem}
+
+% Surrounding angular brackets
+\newcommand{\surang}[1]{\langle #1 \rangle}
+\makeatletter
+\newcommand{\@giventhatstar}[2]{#1\,\middle|\,#2}
+\newcommand{\@giventhatnostar}[3][]{#1(#2\,#1|\,#3#1)}
+\newcommand{\giventhat}{\@ifstar\@giventhatstar\@giventhatnostar}
+\makeatother
+\newcommand{\probof}[1]{\text{Pr}\left( #1 \right)}
+\newcommand{\pdens}[1]{\text{p}\left( #1 \right)}
+\newcommand{\variance}[1]{\text{Var}\left( #1 \right)}
+
+\lstset{ %
+  language=R,                     % the language of the code
+  basicstyle=\footnotesize,       % the size of the fonts that are used for the code
+  numbers=left,                   % where to put the line-numbers
+  numberstyle=\tiny\color{gray},  % the style that is used for the line-numbers
+  stepnumber=1,                   % the step between two line-numbers. If it's 1, each line
+                                  % will be numbered
+  numbersep=5pt,                  % how far the line-numbers are from the code
+  backgroundcolor=\color{white},  % choose the background color. You must add \usepackage{color}
+  showspaces=false,               % show spaces adding particular underscores
+  showstringspaces=false,         % underline spaces within strings
+  showtabs=false,                 % show tabs within strings adding particular underscores
+  frame=single,                   % adds a frame around the code
+  rulecolor=\color{black},        % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. commens (green here))
+  tabsize=2,                      % sets default tabsize to 2 spaces
+  captionpos=b,                   % sets the caption-position to bottom
+  breaklines=true,                % sets automatic line breaking
+  breakatwhitespace=false,        % sets if automatic breaks should only happen at whitespace
+  title=\lstname,                 % show the filename of files included with \lstinputlisting;
+                                  % also try caption instead of title
+  keywordstyle=\color{blue},      % keyword style
+  commentstyle=\color{red},   % comment style
+  stringstyle=\color{black},      % string literal style
+  escapeinside={\%*}{*)},         % if you want to add a comment within your code
+  morekeywords={*,...}            % if you want to add more keywords to the set
+} 
+
+\begin{document}
+
+So we're moving on to Chapter 10: Bayesian Computation, but the professor doesn't like this name.
+The professor would prefer Computational tools for Bayesian inference.
+
+There are two steps:
+
+\begin{enumerate}
+	\item
+		We want to compute a posterior, usually we can at least get an analytic form of the unnormalized posterior.
+		\begin{equation}
+			\pdens{\giventhat*{\theta}{y}} \propto \pdens{\theta}\pdens{\giventhat*{y}{\theta}}
+		\end{equation}
+	\item
+		Then we want to get a posterior predictive.
+		\begin{equation}
+			\pdens{\giventhat*{\tilde{y}{y}}} = \int \pdens{\giventhat*{\tilde{y}}{\theta, y}} \pdens{\giventhat*{\theta}{y}} d\theta
+		\end{equation}
+\end{enumerate}
+
+Suppose we want to know
+
+\begin{equation}
+	E\left( \giventhat*{h\left( \theta \right)}{y} \right) = \int h\left( \theta \right) \pdens{\giventhat*{\theta}{y}} d\theta
+\end{equation}
+
+We have a hierarchy of approaches of decreasing niceness.
+
+\begin{enumerate}
+	\item 
+		Analytic solution:
+		\begin{equation}
+			\pdens{\giventhat*{\theta}{y}} \propto \pdens{\theta} \pdens{\giventhat*{y}{\theta}}
+		\end{equation}
+		This is feasible when we have simple models and conjugate priors.
+	\item
+		Numerical integration (quadrature):
+		Consider
+		\begin{equation}
+			q\left( \giventhat*{\theta}{y} \right) \propto \pdens{\theta} \pdens{\giventhat*{y}{\theta}}
+		\end{equation}
+		So $q\left( \giventhat*{\theta}{y} \right) \propto \pdens{\giventhat*{\theta}{y}}$.
+		$q$ is an unnormalized version of $p$ (which for our purposes we'll just call the ``target density'' since this class is not going to involve anything particularly Bayesian).
+		Note that $q$ is not unique.
+
+		If $q\left( \giventhat*{\theta ^s}{y} \right)$ is known for $\theta ^1 < \theta ^2 < \cdots < \theta ^S$ for $S$ at some large number and $\pdens{\giventhat*{\theta < \theta ^1}{y}} \approx \pdens{\giventhat*{\theta > \theta ^S}{y}} \approx 0$ then we have
+		\begin{align*}
+			E\left( \giventhat*{h\left( \theta \right)}{y} \right) &= \int h\left( \theta \right) \pdens{\giventhat*{\theta}{y}} d\theta\\
+			&= \frac{\int h\left( \theta \right) q\left( \giventhat*{\theta}{y} \right) d\theta} {\int q\left( \giventhat*{\theta}{y} \right) d\theta}\\
+			&\approx \frac{\sum _{s = 1} ^S w_s h\left( \theta ^s \right) q\left( \giventhat*{\theta ^s}{y} \right)}{\sum _{s = 1} ^S w_s q\left( \giventhat*{\theta ^s}{y} \right)}
+		\end{align*}
+		where $w_s = \lvert \theta ^s - \theta ^{s - 1} \rvert$.
+
+		If $\theta$ is high-dimensional, it is the same in principle, bu in practice this becomes prohibitively inefficient for large dimensions.
+	\item
+		Simulation:
+		We sample $\theta ^1, \ldots, \theta ^S$ i.i.d. from $\pdens{\giventhat*{\theta}{y}}$.
+		Then $E\left( \giventhat*{h\left( \theta \right)}{y} \right) \stackrel{a}{=} \frac{1}{S} \sum _{s = 1} ^S h\left( \theta ^s \right)$
+		Then $E\left( \giventhat*{h\left( \theta \right)}{y} \right) \hat{=} \frac{1}{S} \sum _{s = 1} ^S h\left( \theta ^s \right)$
+
+		Thought exercise, reconcile the quadrature vs simulation formulas.
+		As a reminder in the quadrature world we have
+		\begin{equation}
+			\frac{\sum _{s = 1} ^S w_s q\left( \giventhat*{\theta ^s}{y} h\left( \theta ^s \right) \right)}{\sum _{s = 1} ^S w_s q\left( \giventhat*{\theta ^s}{y} \right)} \approx \sum _{s = 1} ^S w_s \pdens{\giventhat*{\theta ^s}{y}} h\left( \theta ^s \right)
+		\end{equation}
+		where $\theta ^s$ are deterministically spaced.
+	\item
+		(This is not really following the hierarchy anymore). Analytic solution based on a distributional approximation (e.g. Chapter 4).
+\end{enumerate}
+
+We'll focus on the third option.
+
+Within the simulation, we can write another hierarchy, this time of Monte Carlo approaches.
+\begin{enumerate}
+	\item 
+		We draw $\theta ^1, \ldots, \theta ^s \sim _\text{iid} \pdens{\giventhat*{\theta}{y}}$ then
+		\begin{equation}
+			E\left( \giventhat*{h\left( \theta \right)}{y} \right) \hat{=} \frac{1}{S} \sum _{s = 1} ^S h\left( \theta ^s \right)
+		\end{equation}
+		This follows from the Law of Large Numbers.
+
+		Not only that, but for large $S$,
+		\begin{equation}
+			\frac{1}{S} \sum _{s = 1} ^S h\left( \theta ^s \right) \sim N\left( E\left( \giventhat*{h\left( \theta \right)}{y} \right), \frac{\variance{\giventhat*{h\left( \theta \right)}{y}}}{S} \right)
+		\end{equation}
+		from the Central Limit Theorem.
+
+		We can quantify Monte Carlo error!
+		We'll talk more about this later (you can find it in Section 10.5, how many samples needed?)
+		\begin{enumerate}
+			\item 
+				Direct simulation based on an inverse CDF (e.g. the \texttt{rdist} function in R).
+			\item
+				Simulation based on a grid approximation to the target distribution.
+			\item
+				Rejection sampling:
+
+				We say that $\pdens{\giventhat*{\theta}{y}}$ is the target density and $g\left( \theta \right)$ is a density we can readily sample from such that 
+				\begin{enumerate}
+					\item 
+						The support of $g$ contains that of $p\left( \giventhat*{\cdot}{y} \right)$.
+					\item
+						There exists an $M$ (which we can compute) such that
+						\begin{equation}
+							\frac{\pdens{\giventhat*{\theta}{y}}}{g\left( \theta \right)} \le M
+						\end{equation}
+						for all $\theta$ (note that this immediately implies that $M \ge 1$).
+				\end{enumerate}
+
+				If those conditions are satisfied, we first sample $\theta$ from $g$ and $U$ from $\text{Uniform}(0, 1)$.
+				Then if $U \le \frac{\pdens{\giventhat*{\theta}{y}}}{M g\left( \theta \right)}$ we accept $\theta$ else we reject $\theta$ and go back to step 1.
+				See page~264 for a diagram illustrating this.
+
+				Let's prove this:
+				Let $\theta$ be the output of the algorithm.
+				We have 
+				\begin{align*}
+					\pdens{\giventhat*{\theta \le \theta ^\star}{\text{$\theta$ is accepted}}} &\stackrel{?}{=} \int _{-\infty} ^ {\theta ^\star} \pdens{\giventhat*{\theta}{y}} d\theta\\
+					%&= \frac{\pdens{\theta \le \theta ^\star, \text{\theta is accepted}}}{\pdens{\text{$\theta$ is accepted}}}\\
+					%&= \frac{\pdens{\theta \le \theta ^\star, U \le \frac{\pdens{\giventhat*{\theta}{y}}}{M g\left( \theta \right)}}}{\pdens{U \le \frac{\pdens{\giventhat*{\theta}{y}}}{Mg\left( \theta \right)}}}
+				\end{align*}
+
+				Note that $\pdens{\theta \le \theta ^\star} = M \int _{-\infty} ^{\theta ^\star} \pdens{U \le \frac{\pdens{\giventhat*{\theta}{y}}}{M g\left( \theta \right)}} g\left( \theta \right) d\theta$
+
+				We have a question:
+				What if $\pdens{\giventhat*{\theta}{y}}$ is not known exactly, but $q\left( \giventhat*{\theta}{y} \right) \propto \pdens{\giventhat*{\theta}{y}}$ is.
+
+				The answer is that this is not a problem at all. Exercise is to show why this is not a problem.
+
+				Hint: $\pdens{\giventhat*{\theta}{y}} = kq \left( \giventhat*{\theta}{y} \right)$, $k$ unknown.
+				Then we have $\frac{q\left( \giventhat*{\theta}{y} \right)}{g\left( \theta \right)} \le \frac{M}{k} = M^\star$ , where $M ^\star$ is known but $M$ is unknown.
+				Replace $p$ by $q$ and $M$ by $M^\star$, hsow that $k$ cancels out of the algorithm.
+
+				Comment 2: $\pdens{\text{proposal is accepted}} = \frac{1}{M} \le 1$.
+				Therefore we have that $E\left( \text{Number of proposals to get a single draw} \right) = M \ge 1$.
+				Hence we can conclude that the closer $M$ is to 1 the better and the closer $g$ is to $p$ the better.
+			\item
+				Importance sampling:
+				The intuition behind importance sampling is that unlike rejection sampling, instead of throwing away items, we simply give them different weights. 
+
+				So again we need to have $g$ a density whose support contains that of $\pdens{\giventhat*{\cdot}{y}}$ from which we can readily sample.
+				We still require that $\frac{\pdens{\giventhat*{\theta}{y}}}{g \left( \theta \right)} \le M < \infty$, but we don't need to solve for $M$.
+
+				\begin{align*}
+					E\left( \giventhat*{h(\theta)}{y} \right) &= \int h\left( \theta \right) \pdens{\theta}{y} d\theta\\
+					&= \int h\left( \theta \right) \frac{\pdens{\giventhat*{\theta}{y}}}{g\left( \theta \right)} g\left( \theta \right) d\theta\\
+					&\hat{=} \frac{1}{S} \sum _{s = 1} ^S h\left( \theta ^s \right) \frac{\pdens{\giventhat*{\theta ^s}{y}}}{g\left( \theta ^s \right)}
+				\end{align*}
+				where $\theta ^1, \ldots, \theta ^S \sim _\text{iid} g\left( \theta \right)$.
+
+				For $q\left( \giventhat*{\theta}{y} \right) \propto \pdens{\giventhat*{\theta}{y}}$ we can see that
+				\begin{align*}
+					E\left( \giventhat*{h\left( \theta \right){y}} \right) &= \int h\left( \theta \right) \pdens{\giventhat*{\theta}{y}} d\theta\\
+					%&= \frac{\int h\left( \theta \right) q\left( \giventhat*{\theta}{y} \right) d\theta}{\int q\left( \giventhat*{\theta}{y} \right) d\theta}
+					&= \frac{\int h\left( \theta \right) \frac{q\left( \giventhat*{\theta}{y} \right)}{g\left( \theta \right)} g\left( \theta \right) d\theta}{\int \frac{q\left( \giventhat*{\theta}{y} \right)}{g\left( \theta \right)} g\left( \theta \right) d\theta}\\
+					&\hat{=} \frac{\frac{1}{S} \sum _{s = 1} ^S h\left( \theta ^s \right) \frac{q\left( \giventhat*{\theta ^s}{y} \right)}{g\left( \theta ^s \right)}}{\frac{1}{S} \sum _{s = 1} ^S \frac{q\left( \giventhat*{\theta ^s}{y} \right)}{g\left( \theta ^s \right)}} \\
+				\end{align*}
+
+				The ideal is that the importance weights are roughly constant.
+		\end{enumerate}
+\end{enumerate}
+
+\end{document}

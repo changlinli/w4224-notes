@@ -1,0 +1,132 @@
+%        File: notes.tex
+%     Created: Thu Jan 19 06:00 PM 2017 E
+% Last Change: Thu Jan 19 06:00 PM 2017 E
+%
+\documentclass[a4paper]{article}
+
+\usepackage{amsmath, amssymb, amsthm}
+
+\begin{document}
+
+How to choose priors in this problem?
+
+\begin{equation}
+	\frac{\alpha}{\beta}
+\end{equation}
+is the prior mean, so make sure that $\alpha$ and $\beta$ are reasonable numbers.
+
+Then remember $E\left( \theta \mid y \right) = \left( \frac{\beta}{\beta + n}
+\right)\left( \frac{\alpha}{\beta} \right) + \left( \frac{n}{\beta + n}
+\right)\bar{y}$. We probably don't have a strong prior, so just take $\beta$
+small relative to $n$.
+
+In this case, let $n = 10$ and $\beta = 0.01$.
+
+Homework 1 is nominally due in-class on Tuesday before 6:10 p.m. Papers are not
+accepted during or after lecture. Papers are nonetheless accepted in the
+homework mailbox in 904 School of Social Work building until 5 p.m. on Friday.
+
+They will be picked up Monday morning.
+
+Note that problem 6 will not be graded because we have not yet covered the material.
+
+Let's just review some common formulas:
+
+\begin{equation}
+	E\left( y \right) = E\left( E\left( y \mid \theta \right) \right)
+\end{equation}
+i.e. where if we average over all values of $\theta$, $E\left( y \mid \theta
+\right)$, we get the unconditional expected value.
+
+\begin{equation}
+	\text{Var}\left( y \right) = E\left( \text{Var}\left( y \mid \theta \right) \right) + \text{Var}\left( E\left( y \mid \theta \right) \right)
+\end{equation}
+
+Now what about these?
+
+\begin{equation}
+	E\left( \tilde{y} \mid y \right) = E\left( E\left( \tilde{y} \mid \theta, y \right) \mid y \right)
+\end{equation}`
+and
+\begin{equation}
+	\text{Var}\left( \tilde{y} \mid y \right) = E\left( \text{Var} \left( \tilde{y} \mid \theta, y \right) \mid y \right) + \text{Var}\left( E \left( \tilde{y} \mid \theta, y \right) \mid y \right)
+\end{equation}
+
+They're the exact same thing! We'll walk through the proof of the first and
+leave off the second because the proof is a bit too long.
+
+\begin{align}
+	E\left( \tilde{y} \mid y \right) &= \int \tilde{y} p\left( \tilde{y} \mid y \right) d \tilde{y} \\
+	&= \int \tilde{y} \int p\left( \tilde{y} \mid \theta y \right) p\left( \theta \mid y \right) d\theta d\tilde{y} \\
+	&= \int \int \tilde{y} p\left( \theta \mid y \right) p\left( \tilde{y} \mid \theta , y \right) d\tilde{y} d\theta\\
+	&= \int p\left( \theta \mid y \right) \left( \int \tilde{y} p\left( \tilde {y} \mid \theta, y \right) d\tilde{y} \right)d\theta\\
+	&= \int p\left( \theta \mid y \right) E\left( \tilde{y} \mid \theta, y \right) d\theta \\
+	&= E\left( E\left( \tilde{y} \mid \theta, y \right) \mid y \right)
+\end{align}
+
+Let's go through why the order in which we do Bayesian updating doesn't matter:
+
+Example 1: Problem 8 and 9 in the text.
+
+Example 2: Pick two coins $C_1$ and $C_2$ with an equal probability.
+Furthermore, let's stipulate that $P\left( H \mid C_1 \right) = 0.4$ and
+$P\left( H \mid C_2 \right) = 0.6$.
+
+Let's say we flip the coins twice and end up with the coins as both heads. Then by a simple application of Bayes' rule we get
+
+\begin{equation}
+	P\left( C_1 \mid HH \right) = \frac{P\left( C_1 \right) P\left( HH \mid C_1 \right)}{P\left( C_1 \right) P\left( HH \mid C_1 \right) + P\left( C_2 \right) P\left( HH \mid C_2 \right)}
+\end{equation}
+
+Carrying out this calculation results in
+
+\begin{equation}
+	\frac{\frac{1}{2} 0.4 ^2}{\frac{1}{2} \left( 0.4 \right) ^2 + \frac{1}{2} \left( 0.6 \right) ^2} = 0.3077
+\end{equation}.
+This means that $P\left( C_2 \mid HH \right) = 0.6923$.
+
+Then if we have another tails, we carry out the calculation again and arrive at 0.4. With $P\left( C_2 \mid HH \right) = 0.6$.
+
+I'm omitting more tedious work to show that in fact updating over all of them
+at the same time results in the same answer as updating piecewise.
+
+In general form we can state it as the following, let $\left\{ A_1, \ldots, A_n \right\}$ be a partition of the sample space, i.e.
+\begin{equation}
+	\sum _{i < n} A_i = 1
+\end{equation}
+and
+\begin{equation}
+	P\left( A_1 \cap A_2 \cdots A_n \right) = \emptyset
+\end{equation}
+
+Let $P\left( A_k \mid B \right) = \frac{P\left( A_k \right) P\left( B \mid A_k \right)}{\sum P(A_j) P\left( B \mid A_j \right)}$ and $P\left( A_k \mid B, C \right) = \frac{P\left( A_k \right) P\left( B, C \mid A_k \right)}{\sum _j P\left( A_j \right) P\left( B, C \mid A \right)}$
+
+Assuming that $P\left( B, C \mid A_j \right) = P\left( B \mid A_j \right) P\left( C \mid A_j \right)$, we get that $\frac{P\left( A_k \mid B \right) P\left( C \mid A_k \right)}{\sum _j P\left( A_j \mid B \right) P\left( c \mid A_j \right)}$.
+
+In the notation of Bayesian inference, we get
+
+\begin{align}
+	P\left( \theta \mid y_1, y_2 \right) &\propto P\left( \theta \right) P\left( y_1, y_2 \mid \theta \right) \\
+	&= p\left( \theta \right) p\left( y_1 \mid \theta \right) p\left( y_2 \mid \theta \right) \text{  (By our assumption of conditional independence)}\\
+	&\propto p\left( \theta \mid y_1 \right) p\left( y_2 \mid \theta \right)
+\end{align}
+
+Interesting thought to follow up on: if we relax conditional independence, is this still true?
+
+Now we're going to finish up the rest of chapter 2, which means that we're going to talk about priors!
+
+And by that I mean go read 2.8 and 2.9.  Consider it safe to skip the technical
+details, e.g. Jeffrey's priors.
+
+If $p(\theta)$ has a finite integral over all $\theta$ then it is called a
+proper prior otherwise it is called an improper prior.
+
+So if $\int p\left( \theta \right) d\theta < \infty$ then $\int p\left( \theta \right) p\left( y \mid \theta \right) d\theta < \infty$ otherwise we have to check!
+
+The classic example is to assume a flat prior on the entire real line where $y \mid \theta$ has distribution $N(\theta, \sigma ^2)$ for some fixed $\sigma ^2$.
+
+You must know that $\int p\left( \theta \right) p\left( y \mid \theta \right) d \theta < \infty$ or you'll get nonsense results and may not even know it.
+
+Note all the simulation exercises are probably done easiest with R.
+
+\end{document}

@@ -1,0 +1,115 @@
+\documentclass{article}
+
+\usepackage{amsmath, amssymb, amsfonts, amsthm, booktabs, verbatim, mathtools, listings, xcolor}
+
+%\numberwithin{equation}{section}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{definition}{Definition}
+\newtheorem{problem}{Problem}
+
+% Surrounding angular brackets
+\newcommand{\surang}[1]{\langle #1 \rangle}
+\makeatletter
+\newcommand{\@giventhatstar}[2]{#1\,\middle|\,#2}
+\newcommand{\@giventhatnostar}[3][]{#1(#2\,#1|\,#3#1)}
+\newcommand{\giventhat}{\@ifstar\@giventhatstar\@giventhatnostar}
+\makeatother
+\newcommand{\probof}[1]{\text{Pr}\left( #1 \right)}
+\newcommand{\pdens}[1]{\text{p}\left( #1 \right)}
+\newcommand{\variance}[1]{\text{Var}\left( #1 \right)}
+
+\lstset{ %
+  language=R,                     % the language of the code
+  basicstyle=\footnotesize,       % the size of the fonts that are used for the code
+  numbers=left,                   % where to put the line-numbers
+  numberstyle=\tiny\color{gray},  % the style that is used for the line-numbers
+  stepnumber=1,                   % the step between two line-numbers. If it's 1, each line
+                                  % will be numbered
+  numbersep=5pt,                  % how far the line-numbers are from the code
+  backgroundcolor=\color{white},  % choose the background color. You must add \usepackage{color}
+  showspaces=false,               % show spaces adding particular underscores
+  showstringspaces=false,         % underline spaces within strings
+  showtabs=false,                 % show tabs within strings adding particular underscores
+  frame=single,                   % adds a frame around the code
+  rulecolor=\color{black},        % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. commens (green here))
+  tabsize=2,                      % sets default tabsize to 2 spaces
+  captionpos=b,                   % sets the caption-position to bottom
+  breaklines=true,                % sets automatic line breaking
+  breakatwhitespace=false,        % sets if automatic breaks should only happen at whitespace
+  title=\lstname,                 % show the filename of files included with \lstinputlisting;
+                                  % also try caption instead of title
+  keywordstyle=\color{blue},      % keyword style
+  commentstyle=\color{red},   % comment style
+  stringstyle=\color{black},      % string literal style
+  escapeinside={\%*}{*)},         % if you want to add a comment within your code
+  morekeywords={*,...}            % if you want to add more keywords to the set
+} 
+
+\begin{document}
+
+\begin{definition}
+	The missing data mechanism is ignorable if $\pdens{\giventhat*{\theta}{y_\text{obs}, I}} = \pdens{\giventhat*{\theta}{y_\text{obs}}}$.
+	The posterior of $\theta$ depends on values observed but not on where they are.
+\end{definition}
+
+\begin{definition}
+	The condition of missing at random (MAR) holds if $\pdens{\giventhat*{I}{y, \phi}} = \pdens{\giventhat*{I}{y_\text{obs}, \phi}}$.
+\end{definition}
+
+\begin{theorem}
+	MAR + DP implies ignorability.
+\end{theorem}
+\begin{proof}
+	Given the following, we want to see $I$ drop out of the right-hand side.
+	\begin{align*}
+		\pdens{\giventhat*{\theta}{y_\text{obs}, I}} = \frac{\pdens{\theta} \pdens{\giventhat*{y_\text{obs}, I}{\theta}}}{\pdens{y_\text{obs}, I}}
+	\end{align*}
+	So note first that
+	\begin{align*}
+		\pdens{\giventhat*{y_\text{obs}, I}{\theta}} &= \int \int \pdens{\giventhat*{\phi}{\theta}} \pdens{\giventhat*{y, I}{\theta, \phi}} dy_\text{mis} d\phi \\
+		&= \int \int \pdens{\giventhat*{\phi}{\theta}} \pdens{\giventhat*{y}{\theta}} \pdens{\giventhat*{I}{y, \phi}} dy_\text{mis} d\phi\\
+		&= \int \int \pdens{\phi} \pdens{\giventhat*{y}{\theta}} \pdens{\giventhat*{I}{y_\text{obs}, \phi}} dy_\text{mis} d\phi\\
+		&= \int \pdens{\giventhat*{y}{\theta}} dy_\text{mis} \int \pdens{\phi} \pdens{\giventhat*{I}{y_\text{obs}, \phi}} d\phi\\
+		&= \pdens{\giventhat*{y_\text{obs}}{\theta}} \pdens{\giventhat*{I}{y_\text{obs}}} \\
+	\end{align*}
+	Then we have that
+	\begin{align*}
+		\pdens{\giventhat*{\theta}{y_\text{obs}, I}} &= \frac{\pdens{\theta} \pdens{\giventhat*{y_\text{obs}, I}{\theta}}}{\pdens{y_\text{obs}, I}} \\
+		&= \frac{\pdens{\theta} \pdens{\giventhat*{y_\text{obs}}{\theta}} \pdens{\giventhat*{I}{y_\text{obs}}}}{\pdens{y_\text{obs}} \pdens{\giventhat*{I}{y_\text{obs}}}}\\
+		&= \frac{\pdens{\theta} \pdens{\giventhat*{y_\text{obs}{\theta}}}}{\pdens{y_\text{obs}} \pdens{\giventhat*{I}{y_\text{obs}}}}
+	\end{align*}
+\end{proof}
+
+Randomized blocks design:
+
+Agriculture, compare 3 oat varieties. We have 4 plots of land, they're
+different. Divide each plot into 3 subplots which yields 12 units total.  We
+will grow each variety in 4 subplots. A completely randomized design would
+randomly assign 4 subplots for each oat variety.  In a randomized complete blocks
+design, each treatment is applied exactly once in each block (``restricted
+randomization'').
+
+Why do we prefer a randomized complete blocks design?
+Well let's look at another example.
+
+We want to compare 5 pain medications and we have 20 subjects, who vary in age
+(we've got 5 in their 20s, 5 in their 30s, 5 in their 40s, and 5 in their 60s).
+
+In a completely randomized design we pick 4 subjects at random for each treatment group. There are $\frac{20!}{\left( 4! \right)^6} \approx 3\cdot 10^{11}$ ways to do this.
+
+In a randomized blocks design we use age as the ``blocking variable'' within each age group (each block) and we randomly assign one subject to each treatment.
+
+This results in far fewer possibilities is $\left( 5! \right) ^4 = 2 \cdot
+10^8$ which is an indication that it is extremely unlikely that we would end up
+with something out of a randomized complete blocks design from a completely randomized
+design.
+
+Note that for the final exam, in Chapter 8 you will only be responsible for sections 8.1 to 8.4.
+
+In chapter 9 we will only look at Section 9.1 and 9.3.
+
+Now we're on Section 9.1
+
+\end{document}

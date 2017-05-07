@@ -1,0 +1,268 @@
+\documentclass[10pt]{article}
+
+\usepackage{amsmath, amssymb, amsfonts, amsthm, booktabs, verbatim, mathtools, listings, xcolor}
+
+%\numberwithin{equation}{section}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{definition}{Definition}
+\newtheorem{problem}{Problem}
+
+% Surrounding angular brackets
+\newcommand{\surang}[1]{\langle #1 \rangle}
+\makeatletter
+\newcommand{\@giventhatstar}[2]{#1\,\middle|\,#2}
+\newcommand{\@giventhatnostar}[3][]{#1(#2\,#1|\,#3#1)}
+\newcommand{\giventhat}{\@ifstar\@giventhatstar\@giventhatnostar}
+\makeatother
+\newcommand{\probof}[1]{\text{Pr}\left( #1 \right)}
+\newcommand{\pdens}[1]{p\left( #1 \right)}
+\newcommand{\variance}[1]{\text{Var}\left( #1 \right)}
+\newcommand{\factorial}[1]{\left( #1 \right)!}
+\newcommand{\factoriall}[1]{#1!}
+
+\lstset{ %
+  language=R,                     % the language of the code
+  basicstyle=\footnotesize,       % the size of the fonts that are used for the code
+  numbers=left,                   % where to put the line-numbers
+  numberstyle=\tiny\color{gray},  % the style that is used for the line-numbers
+  stepnumber=1,                   % the step between two line-numbers. If it's 1, each line
+                                  % will be numbered
+  numbersep=5pt,                  % how far the line-numbers are from the code
+  backgroundcolor=\color{white},  % choose the background color. You must add \usepackage{color}
+  showspaces=false,               % show spaces adding particular underscores
+  showstringspaces=false,         % underline spaces within strings
+  showtabs=false,                 % show tabs within strings adding particular underscores
+  frame=single,                   % adds a frame around the code
+  rulecolor=\color{black},        % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. commens (green here))
+  tabsize=2,                      % sets default tabsize to 2 spaces
+  captionpos=b,                   % sets the caption-position to bottom
+  breaklines=true,                % sets automatic line breaking
+  breakatwhitespace=false,        % sets if automatic breaks should only happen at whitespace
+  title=\lstname,                 % show the filename of files included with \lstinputlisting;
+                                  % also try caption instead of title
+  keywordstyle=\color{blue},      % keyword style
+  commentstyle=\color{red},   % comment style
+  stringstyle=\color{black},      % string literal style
+  escapeinside={\%*}{*)},         % if you want to add a comment within your code
+  morekeywords={*,...}            % if you want to add more keywords to the set
+} 
+
+\begin{document}
+The solution given to homework 6 problem 2 was wrong.
+The fix (thanks to Aditya Huddedar) is to replace
+\begin{lstlisting}
+log.prior <- dmt(theta, mean = c(0, 0), ) # etc
+\end{lstlisting}
+with
+\begin{lstlisting}
+dt(alpha / 2, df = 4, log = T) + dt(beta, df = 4, log = T)
+\end{lstlisting}
+So why do we have the $\frac{alpha}{2}$?
+Well
+\begin{equation}
+\alpha \sim t _4 (0, 2^2) \Longrightarrow \alpha = t
+\end{equation}
+where $t \sim t_4$.
+\begin{equation}
+	f_\alpha(\alpha) = f_t(t(\alpha)) \lvert \frac{dt}{d\alpha} \rvert = f_t (\frac{\alpha}{2})(\frac{1}{2})
+\end{equation}
+and OK to ignore the $\frac{1}{2}$ because it is absorbed in the normalizing constant.
+
+So why aren't they the same?
+Because
+\begin{equation}
+	\alpha \sim t_4 (0, 2^2)
+\end{equation}
+and
+\begin{equation}
+	\beta \sim t_4 (0, 1)
+\end{equation}
+where $\alpha$ and $\beta$ are independent
+does \emph{not} imply that
+\begin{equation}
+	\binom{\alpha}{\beta} \sim t_4 \left( \binom{0}{0},  \right)
+	% First row 4 0
+	% Second row 0 1
+\end{equation}
+The upshot to this is that the answers for 1b are
+\begin{equation}
+	E\left( \giventhat*{\alpha}{y} \right) \approx 0
+\end{equation}
+with the $50\%$ PI as $-0.30, 0.30$
+and 
+\begin{equation}
+	E\left( \giventhat*{\beta}{y} \right) \approx 0.8
+\end{equation}
+with the $50\%$ PI as $0.30, 1.30$ where $n_\text{eff, IS} \approx 625$.
+
+$n _\text{eff, MHIS}$ unfortunately is highly variable. And so we do not have a good way of calculating this.
+For future reference the way to deal with this is to instead to a method called ``batch means''.
+This estimates
+\begin{equation}
+	\frac{\sigma ^2}{1 + 2 \sum _{t = 1} ^\infty \rho _t}
+\end{equation}
+better than 
+\begin{equation}
+	\frac{\hat{\sigma ^2}}{1 + 2 \sum _{t = 1} ^{30} \hat{\rho _t}}
+\end{equation}
+
+Now let's finish tying some loose ends.
+Speaking of $n_\text{eff}$ where does
+\begin{equation}
+	n _\text{eff, IS} = \frac{1}{\sum \tilde{w ^2}}
+\end{equation}
+come from?
+
+What about the claim that the optimal choice for importance sampling is $g\left( \theta \right) \propto p\left( \giventhat*{\theta}{y} \right)$ or is the case that the optimal choice for importance sampling is $g\left( \theta \right) \propto \lvert h\left( \theta \right) \rvert \pdens{\giventhat*{\theta}{y}}$ (both are written in the book)?
+They can't both be right.
+
+Well the second expression is right, but not the full story.
+Pretend that the $\tilde{w}$ are fixed.
+Then we have
+\begin{align*}
+	\variance{\sum _{j = 1} ^n \tilde{w_j} h\left( \theta ^j \right)}
+	&= \sum _{j = 1} ^n \tilde{w _j ^2} \variance{h\left( \theta ^j \right)}\\
+	&= \text{Var} _g \left( h\left( \theta \right) \right) \sum _{j = 1} ^n \tilde{w _j} ^2
+\end{align*}
+We want to minimize $\sum \tilde{w_j} ^2$ subject to $\tilde{w_j} \ge 0$ and $\sum \tilde{w _j} = 1$.
+The solution is $\tilde{w_j}  = \frac{1}{n}$ where $j = 1, \ldots, n$.
+
+Now $\tilde{w_j}$ is constant if and only if $\frac{q\left( \giventhat*{\theta}{y} \right)}{g\left( \theta \right)}$ is constant which implies that $g\left( \theta \right) \propto q\left( \giventhat*{\theta}{y} \right)$.
+
+For the other
+\begin{equation}
+	\variance{\hat{h _\text{iid, $n_\text{eff}$}}} = \variance{\hat{h _\text{IS, $n$}}}
+\end{equation}
+and
+\begin{equation}
+	\frac{\variance{\giventhat*{h\left( \theta \right)}{y}}}{n_\text{eff}} = \text{Var}_g\left( h\left( \theta \right) \right) \sum \tilde{w}^2
+\end{equation}
+which implies that
+\begin{align*}
+	n_\text{eff} &= \frac{\variance{\giventhat*{h\left( \theta \right)}{y}}}{\text{Var} _g \left( h\left( \theta \right) \right) \sum \tilde{w} ^2}\\
+	&\approx \frac{1}{\tilde{w_j}^2}
+\end{align*}
+
+What about the other rule for optimal $g$?
+Well we have
+\begin{align*}
+	E\left( \giventhat*{h\left( \theta \right)}{y} \right) 
+	&= \int h\left( \theta \right) \pdens{\giventhat*{\theta}{y}} d\theta\\
+	&= \int \frac{\pdens{\giventhat*{\theta}{y}}}{g\left( \theta \right)} h\left( \theta \right) g\left( \theta \right) d\theta\\
+	&= E_g\left( w\left( \theta \right) h\left( \theta \right) \right)\\
+	&\hat{=} \frac{1}{n} \sum w\left( \theta ^j \right) h\left( \theta ^j \right)
+\end{align*}
+for $\theta ^j \sim _\text{iid} g\left( \theta \right)$.
+
+We have
+\begin{align*}
+	n\variance{\hat{h}_\text{IS}} 
+	&= \text{Var} _g \left( w\left( \theta \right) h\left( \theta \right) \right)\\
+	&= E_g \left( \left( w\left( \theta \right) h\left( \theta \right) \right) ^2 \right) - \left( E_g \left( w\left( \theta \right) h\left( \theta \right) \right) \right)^2
+\end{align*}
+
+Now
+\begin{align*}
+	E_g \left( w\left( \theta \right) h\left( \theta \right) \right) 
+	&= \int \frac{\pdens{\giventhat*{\theta}{y}}}{g\left( \theta \right)} h\left( \theta \right) g\left( \theta \right)  d\theta\\
+	&= E\left( \giventhat*{h\left( \theta \right)}{y} \right)
+\end{align*}
+is the same for any choice of $g$, so why not choose $g$ to minimize the first term?
+\begin{equation}
+	E_g \left( \left( w\left( \theta \right) h\left( \theta \right) \right) ^2 \right) \stackrel{\text{Jensen}}{\ge} \left( E\left( \giventhat*{w\left( \theta \right)}{\lvert h\left( \theta \right) \rvert} \right) \right)^2
+\end{equation}
+Now if we focus on the right-hand side we have
+\begin{align*}
+	\left( E\left( \giventhat*{w\left( \theta \right)}{\lvert h\left( \theta \right) \rvert} \right) \right)^2
+	&= \left( \int \frac{\pdens{\giventhat*{\theta}{y}}}{g\left( \theta \right)} \lvert h\left( \theta \right) \rvert g\left( \theta \right) d\theta \right) ^2\\
+	&= \left( \int \lvert h\left( \theta \right) \rvert \pdens{\giventhat*{\theta}{y}} d\theta \right) ^2
+\end{align*}`
+that is the lower bound does not depend on $g$.
+
+So what choice of $g$ is this lower bound attained (i.e. what choice of $g$ lets us cancel out $g$)?
+We're looking for a $g$ so that
+\begin{equation}
+	\int \left( \frac{\pdens{\giventhat*{\theta}{y}} h\left( \theta \right)}{g\left( \theta \right)} \right) ^2 g\left( \theta \right) d\theta \stackrel{?}{=} \left( \int \lvert h\left( \theta \right) \rvert \pdens{\giventhat*{\theta}{y}} d\theta \right) ^2
+\end{equation}
+
+Take $g\left( \theta \right) = \frac{1}{k} \pdens{\giventhat*{\theta}{y}} \lvert h\left( \theta \right) \rvert$.
+And we see that the left-hand side of our equation becomes $\int k^2 g\left( \theta \right) d\theta = k^2$ and the right-hand side becomes $\left( \int kg\left( \theta \right) d\theta \right) ^2 = k^2$.
+Thus the variance-minimizing choice is $g\left( \theta \right) \approx \pdens{\giventhat*{\theta}{y}} \lvert h\left( \theta \right) \rvert$.
+
+This is interesting but unfortunately useless.
+If I knew a density $g$ for which $g\left( \theta \right) \approx \lvert h\left( \theta \right) \rvert \pdens{\giventhat*{\theta}{y}}$ where $g\left( \theta \right) d\theta = 1$, then I would know $\int h\left( \theta \right) \pdens{\giventhat*{\theta}{y}} d\theta$ and I wouldn't need importance sampling.
+
+Reference: Robert and Casella, Monte Carlo Statistical Methods.
+
+The reference for the next thing is Ferguson, A Course in Large Sample Theory (Theorem 13 on page 89).
+Let's talk about the standard error of the sample quantile.
+Let $U_1, U_2, \ldots \sim_\text{iid} \text{Uniform}(0, 1)$.
+Let $U_{(1)} < U_{\left( 2 \right)} < \ldots $ be the order statistics.
+For any $0 < p < 1$ as $n \to \infty$.
+Then $\sqrt{n} \left( U_{\left( [np] \right)} - p \right) \to N\left( 0, p \left( 1 - p \right) \right)$ where $[\cdot]$ is the closest integer function (although it could easily be the floor or ceiling function).
+
+The corollary is to let $X_1, X_2, \ldots \sim _\text{iid}$ with a strictly monotonically increasing CDF $F$ and a PDF $f$.
+Once again we take the order statistics
+$X_{\left( 1 \right)} < X_{\left( 2 \right)} < \ldots$
+and note as $n \to \infty$ we have that $\sqrt{n} \left( X_{\left( [np] \right)} - x_p \right) \to N9(0, \frac{p \left( 1 - p \right)}{f\left( x_p \right) ^2}$ where
+$x_p$ is the $p$-quantile $F\left( x_p \right) = p$ and therefore $x_p  F^{-1}(p)$ (which we get by strict monotonicity).
+
+Recall that if $U \sim \text{Uniform}(0, 1)$ and $F$ is a strictly monotonically increasing CDF then $X = F^{-1}\left( U \right)$ has a distribution with CDF $F$.
+
+Then $X_1, \ldots, X_n \sim _\text{iid} F$ and $U_1, \ldots, U_n \sim _\text{iid} \text{Uniform}(0, 1)$.
+So the distribution of $X_{\left( k \right)}$ is equal to the distribution of $F^{-1} \left( U_{\left( k \right)} \right)$.
+The proof of the corollary is
+\begin{equation}
+	\frac{d}{dU} F^{-1}(U) = \frac{1}{f(F^{-1} (u))}
+\end{equation}
+so we can use the delta method from calculus to get
+\begin{equation}
+	\sqrt{n} \left( F^{-1} \left( U_{\left( [np] \right)} \right) - F^{-1} \left( p \right) \right) \to N\left( 0, \frac{p(1 - p)}{\left( f\left( F^{-1}\left( p \right) \right) \right) ^2} \right)
+\end{equation}
+or
+\begin{equation}
+	\sqrt{n}(X_{\left( [np] \right)} - x_p) \to N\left( 0, \frac{p(1 - p)}{f(x _p) ^2} \right)
+\end{equation}
+
+The large sample distribution of a sample quantile is
+\begin{equation}
+	X_{\left( [np] \right)} \sim N\left( x_p, \frac{p (1 - p)}{n f(x_p) ^2} \right)
+\end{equation}
+This is what we used on homework problem 1.
+
+This last part is what we didn't do in this course, and why I don't feel that bad about it.
+Two things:
+\begin{enumerate}
+	\item 
+		Stan: I don't feel bad because you are well-qualified to learn it yourself now.
+		If you learn Stan you don't have to figure out how to do $\theta \sim \pdens{\giventhat*{\theta}{y}}$.
+		Just specify $\pdens{\theta}$ and $\pdens{\giventhat*{y}{\theta}}$ and Stan will do the rest.
+		Stan is powerful and also dangerous, but it will be safe in your hands.
+	\item
+		Chapters 14 - 16 which are regression and GLMs and Chapter 22 with Mixture models.
+		For example Homework 4 problem 5, which are the Faculty publications.
+		The Poisson model was not appropriate for these data because there were far too many zeroes.
+		We could have instead used $\lambda$ as the proportion of faculty who are ``research active''.
+		Then we might say that $\left( \giventhat*{y_j}{\theta, \lambda} \right)$ is distributed according to $\text{Poisson}(\theta)$ with probability $\lambda$ if they are ``research active'' and $0$ with probability $1 - \lambda$ (i.e. are not ``research active'').
+		Then we might have a prior on $\lambda \sim \text{Uniform}(0, 1)$ with $\theta \sim \pdens{\theta}$.
+		Then we want to calculate the joint posterior $\pdens{\giventhat*{\lambda, \theta}}{y}$.
+\end{enumerate}
+
+Okay now we get to the final exam.
+\begin{enumerate}
+	\item 
+		Bring a calculator
+	\item
+		You are allowed two sheets (four sides total) of original handwritten notes.
+	\item
+		Everything in the course is fair game, but the emphasis will be on the second half (i.e. Chapters 7 - 11).
+	\item
+		There will be a problem like Oscar's dog.
+	\item
+		There will not be a problem drawn from Chapter 8 (there will be true/false questions).
+	\item
+		There will be a problem on the Gibbs sampler for the hierarchical normal model (Section 11.6 and ``coagulation'' example in Files slash Examples on Courseworks). 
+\end{enumerate}
+\end{document}

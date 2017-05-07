@@ -1,0 +1,186 @@
+%        File: notes.tex
+%     Created: Thu Jan 19 06:00 PM 2017 E
+% Last Change: Thu Jan 19 06:00 PM 2017 E
+%
+\documentclass[a4paper]{article}
+
+\usepackage{amsmath, amssymb, amsthm}
+
+\begin{document}
+
+Example: Boss thinks that $10\%$ of workers are on drugs, and $95\%$ certain that it is not more than $25\%$.
+
+So set $\frac{\alpha - 1}{\alpha + \beta - 2} = .10$ note that $\int _0 ^{0.25} \text{Beta}(\theta \mid \alpha, \beta) d\theta = 0.95$.
+
+The solution is $\alpha = 3.44$ and $\beta = 22.99$.
+
+Let's try taking instead an extremely noninformative prior. In particular we'll
+say that $\alpha = \beta = 1$ which means that $\theta \sim \text{Uniform}(0,
+1)$. Note that there is no such thing as a truly noninformative prior.
+
+For example, even if we stick to uniform, we say that $\theta$ is
+noninformative, but wouldn't that mean, if taken seriously that we have no real
+opinion of $\theta ^2$? Well that's clearly not true, since $\theta ^2$ is not
+uniform. 
+
+Yet another possibility of a prior is to not use a Beta distribution at all.
+Note that in Gelman 37-39, there is an example of doing this (this is the spike
+example with two uniform flats for determining birth gender).
+
+We now adjourn for some course information.
+
+The TA for this class is \emph{Ding Zhou} (dz2336). Her office hours are
+Tuesdays 12:30 to 1:30 and Thursdays 9:00 - 10:00 a.m. in 1023 SSW.
+
+The instructor office hours are Tuesday and Thursday 5:30 in 833 Mudd.
+Wednesdays anytime by appointment in Room 612 Watson. If you want to make sure
+that the instructor is in before coming is 212-853-1388.
+
+Our next example is to take $y_i$ to be the height of the $i$th girl in our
+sample for $i = 1 \ldots n$. Hence are our data are $\left( y_1, \ldots, y_n
+\right) = y$.
+
+Our model is that $y_1, \ldots, y_n \mid \theta \sim \text{i.i.d.} N\left(
+\theta, \sigma ^2 \right)$ where $\sigma ^2$ is known.
+
+So the likelihood part of the model is going to be 
+
+\begin{align}
+p \left( y \mid \theta \right) &= \prod _{i = 1} ^n p\left( y_i \mid \theta \right) \\
+&= \prod _{i = 1} ^n \left( 2 \pi \sigma ^2 \right) ^{- \frac{1}{2}} \text{exp}\left( -\frac{1}{2 \sigma ^2} \left( y_i - \theta \right)^2 \right)\\
+&= \left( 2 \pi \sigma ^2 \right) ^{- \frac{1}{2}} \text{exp}\left( - \frac{1}{2 \sigma} \sum _{i = 1} ^n \left( y _i - \theta \right) ^2 \right)\\
+\end{align}
+
+For the prior, we'll take $\theta \sim N\left( \mu _0, \tau _0 ^2 \right)$ (these parameters $\mu _0$ and $\tau _0 ^2$ are known as hyperparameters).
+
+After some tedious work, we arrive at 
+\begin{align}
+p\left( \theta \mid y \right) &\propto p\left( \theta \right) p\left( y \mid \theta \right)\\
+&\propto \text{exp}\left( - \frac{1}{2 \tau _0 ^2}\left( \theta - \mu_0 \right)^2 - \frac{1}{2 \sigma ^2}\left( \sum \left( y _i - \theta \right) \right) \right)
+\end{align}
+
+Well what can we do from here? The first step we can do is to try to simplify
+this in a way where we can throw away various constant factors in the name of
+proportionality.
+
+\begin{equation}
+	\sum \left( y _i - \theta \right)^2 = \sum \left( \left( y _i - \bar{y} \right) + \left( \bar{y} - \theta \right) \right)^2
+\end{equation}
+
+Which we can simply again again to $\sum \left( y _i - \bar[y]  \right)^2 + n \left( \bar{y} - \theta \right) ^2$.
+
+% Ran out of time here\dots
+%This imiplies that $p\left( \theta \mid y \right) \propto \text{exp}\left( - \frac{1}{2} \left( \frac{\left( \theta - \mu \right) ^2}{\tau _0 ^2} + \frac{n \left( \theta - \hat \right)}<++> \right)<++> \right)<++>$<++>
+
+%$\mu _n = \frac{\frac{\mu _0}{\tau _0 ^2} + \frac{n \bar{y}}{\sigma ^2}}{\frac{1}{\tau _0 ^2} + \frac{n}{\sigma ^2}}$
+
+$\tau _n ^2 = \left( \frac{1}{\left(\tau _0 ^2 \right)} + \frac{n}{\sigma ^2} \right) ^{-1}$ which is the variance of $\theta \mid y$.
+
+Comment: the normal prior is conjugate for $N\left( \theta, \sigma ^2 \right)$ model.
+
+Note that we have another example of a data augmentation prior.
+
+The data contributes an observation of $\hat{y}$ with variance
+$\frac{\sigma^2}{n}$. The prior contributes an observation of $\mu_0$ with
+variance $\tau _0 ^2$.
+
+The posterior mean is the weighted average of the prior mean and the sample
+mean weighted by the ``inverse variances,'' i.e. the precisions.
+
+The posterior variance is slightly complicated than the mean.
+
+\begin{equation}
+	\tau _n ^2 = \left( \frac{1}{\tau _0 ^2} + \frac{n}{\sigma ^2} \right) ^{-1}
+\end{equation}
+
+This is much easier when stated in terms of the precision.
+
+$\frac{1}{\tau _n ^2} = \frac{1}{\tau _0 ^2} + \frac{1}{\sigma ^2 / n}$.
+
+That is the posterior precision is the sum of the prior precision and data precision.
+
+Now let's try our hand at prediction!
+
+\begin{equation}
+	\theta \sim N\left( \mu _0, \theta _0 ^2 \right)
+\end{equation}
+
+We have 
+\begin{equation}
+	y_1 , \ldots, y_n, y_{n + 1} \mid \theta \sim \text{i.i.d.} N\left( \theta, \sigma ^2 \right)
+\end{equation}
+where $\sigma ^2$ is known, $\left( y_1, \ldots, y_n \right) = y$ is observed and $y_{n + 1} = \tilde{y}$ (note once again that $\theta$ is inherently unobservable).
+
+Note that
+
+\begin{align}
+	p\left( \tilde{y} \mid y \right) &= \int p\left( \tilde{y} \mid \theta \right) p\left( \theta \mid y \right) d \theta \\
+	&\propto \int \text{exp}\left( -\frac{1}{2 \sigma ^2} \left( \tilde{y} - \theta \right) ^2 \right)\text{exp}\left( -\frac{1}{2 \tau _n} \left( \theta - \mu _n \right) ^2 \right) d\theta
+\end{align}
+
+Now you could solve this\dots but you could also just observe that
+\begin{equation}
+	p\left( \tilde{y} \mid y \right) \propto \text{exp}\left( a \tilde{y}^2 + b \tilde{y} + c \right)
+\end{equation}
+for some $a$ and $b$, which implies that $\tilde{y} \mid y \sim N\left(
+-\frac{b}{2a}, -\frac{1}{2a} \right)$.
+
+Now to actually calculate the mean and variance , we observe
+\begin{align}
+	E\left( \tilde{y} \mid y \right) &= E\left( E\left( \tilde{y} \mid \theta, y \right) \mid y \right) \\
+	&= E\left( \theta \mid y \right) \\
+	&= \mu _n
+\end{align}
+
+Now to get the variance, we get $\text{Var}\left( \tilde{y} \right) = E\left( \text{Var}\left( \tilde{y} \mid \theta \right) \right) + \text{Var}\left( E\left( \tilde{y} \mid \theta \right) \right)$.
+
+This means that $\text{Var}\left( \tilde{y} \mid y \right) = E\left( \text{Var}\left( \tilde{y} \mid \theta, y \right) \mid y \right) + \text{Var}\left( E\left( \tilde{y} \mid \theta, y \right) \mid y \right)$ which results in 
+$E\left( \sigma ^2 \mid y \right) + \text{Var}\left( \theta \mid y \right)$ which finally results in $\sigma ^2 + \tau _n ^2$.
+
+Now let's do the ``Box'' (WTF is this?)!
+
+Given that $\theta \sim N\left( \mu _0, \tau _0 ^2 \right)$ and $y_1, \ldots, y_n, y_{n + 1} \mid \theta \sim N\left( \theta, \sigma ^2 \right)$ and $\left( y_1, \ldots, y_n \right) = y$ with $y_{n + 1} = \tilde{y}$ we arrive at 
+
+\begin{equation}
+	\bar{y} \mid \theta \sim N\left( \theta, \frac{\sigma ^2}{n} \right)
+\end{equation}
+and
+\begin{equation}
+	\bar{y} \sim N(\mu _0, \frac{\sigma ^2}{n} + \frac{\tau _n ^2}{n}
+\end{equation}`
+
+% Okay let's just fill in the rest from the box in Gelman, argh
+
+We're now on the next example: $y_i$ is the number of accidents on day $i$ where $i \in \left\{ 1, \ldots, n \right\}$.
+
+We will assume that $y_1, \ldots, y_n \mid \theta \sim \text{i.i.d.} \text{Poisson} (\theta)$.
+
+This means that 
+\begin{align}
+	p\left( y \mid \theta \right) &= \prod _{i = 1} ^n p\left( y_i \mid \theta \right)\\
+	&= \prod _{i = 1} ^n e ^{- \theta} \frac{\theta ^{y _i}}{y _i !}\\
+	&= e ^{-n \theta} \frac{\theta ^{\sum y_i}}{\prod y_i !}
+\end{align}
+
+So we get that $p\left( y \mid \theta \right) \propto _\theta \theta ^{\sum y_i} e ^{-n \theta}$.
+
+So the conjugate prior is $p\left( \theta \right) \propto \theta ^{\alpha - 1} e ^{-\beta \theta}$ which implies that $\theta \sim \text{Gamma}\left( \alpha, \beta \right)$.
+
+So we have that 
+\begin{align}
+	p\left( \theta \mid y \right) &\propto p\left( \theta \right) p\left( y \mid \theta \right) \\
+	&\propto \theta ^{\alpha - 1} e ^{-\beta \theta} e ^{\sum y_i} e^{-n \theta}\\
+	&= \theta ^{\alpha + n \bar{y} - 1} e ^{-\left( \beta + n \right) \theta}
+\end{align}`
+which means
+\begin{equation}
+	\theta \mid y \sim \text{Gamma}\left( \alpha + n \bar{y}, \beta + n \right)
+\end{equation}.
+So we get that 
+\begin{align}
+	E\left( \theta \mid y \right) &= \frac{\alpha + n \bar{y}}{\beta + n}\\
+	&= \left( \frac{\beta}{\beta + n} \right)\left( \frac{\alpha}{\beta} \right) + \left( \frac{n}{\beta + n} \right)\bar{y}\\
+	&= \text{The weighted average of the prior mean with weight $\beta$ and the sample mean with weight $n$}
+\end{align}`
+
+\end{document}

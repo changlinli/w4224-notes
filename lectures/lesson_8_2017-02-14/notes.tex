@@ -1,0 +1,196 @@
+\documentclass{article}
+
+\usepackage{amsmath, amssymb, amsfonts, amsthm, booktabs, verbatim, mathtools, listings, xcolor}
+
+%\numberwithin{equation}{section}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{definition}{Definition}
+\newtheorem{problem}{Problem}
+
+% Surrounding angular brackets
+\newcommand{\surang}[1]{\langle #1 \rangle}
+\makeatletter
+\newcommand{\@giventhatstar}[2]{#1\,\middle|\,#2}
+\newcommand{\@giventhatnostar}[3][]{#1(#2\,#1|\,#3#1)}
+\newcommand{\giventhat}{\@ifstar\@giventhatstar\@giventhatnostar}
+\makeatother
+\newcommand{\probof}[1]{\text{Pr}\left( #1 \right)}
+\newcommand{\pdens}[1]{\text{p}\left( #1 \right)}
+\newcommand{\variance}[1]{\text{Var}\left( #1 \right)}
+
+\lstset{ %
+  language=R,                     % the language of the code
+  basicstyle=\footnotesize,       % the size of the fonts that are used for the code
+  numbers=left,                   % where to put the line-numbers
+  numberstyle=\tiny\color{gray},  % the style that is used for the line-numbers
+  stepnumber=1,                   % the step between two line-numbers. If it's 1, each line
+                                  % will be numbered
+  numbersep=5pt,                  % how far the line-numbers are from the code
+  backgroundcolor=\color{white},  % choose the background color. You must add \usepackage{color}
+  showspaces=false,               % show spaces adding particular underscores
+  showstringspaces=false,         % underline spaces within strings
+  showtabs=false,                 % show tabs within strings adding particular underscores
+  frame=single,                   % adds a frame around the code
+  rulecolor=\color{black},        % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. commens (green here))
+  tabsize=2,                      % sets default tabsize to 2 spaces
+  captionpos=b,                   % sets the caption-position to bottom
+  breaklines=true,                % sets automatic line breaking
+  breakatwhitespace=false,        % sets if automatic breaks should only happen at whitespace
+  title=\lstname,                 % show the filename of files included with \lstinputlisting;
+                                  % also try caption instead of title
+  keywordstyle=\color{blue},      % keyword style
+  commentstyle=\color{red},   % comment style
+  stringstyle=\color{black},      % string literal style
+  escapeinside={\%*}{*)},         % if you want to add a comment within your code
+  morekeywords={*,...}            % if you want to add more keywords to the set
+} 
+
+\begin{document}
+
+Today we're talking about hierarchical modeling.
+
+Note that the hyperprior will usually be non-informative.
+
+True or False? Happily, impropriety (i.e. whether a hyperprior is improper) in
+a hyperprior is a non-issue, as long as the prior
+$\pdens{\giventhat*{\theta}{\Theta}}$ is proper, the joint posterior will be
+proper.
+
+Unfortunately this is not true. If we use an improper (hyper) prior, we must
+always check the resulting posterior to make sure that it is proper.
+
+\section{Inferential strategy (5.3)}
+
+\begin{enumerate}
+	\item 
+		Write 
+		\begin{equation}
+			\pdens{\giventhat*{\Theta, \theta}{y}} \propto \pdens{\Theta} \pdens{\giventhat*{\theta}{\Theta}} \pdens{\giventhat*{y}{\theta}}
+		\end{equation}
+	\item
+		Figure out 
+		\begin{equation}
+			\pdens{\giventhat*{\theta}{y, \Theta}} \propto \pdens{\giventhat*{\theta}{\Theta}} \pdens{\giventhat*{y}{\theta}}
+		\end{equation}
+	\item
+		Get the marginal probability of the hyperprior
+		, i.e. $\pdens{\giventhat*{\Theta}{y}}$. This is useful to know even
+		if we only care about $\theta$, not $\Theta$, because it will
+		be necessary for a lot of our various calculations that we'll
+		need to do along the way.
+
+		\begin{equation}
+			\pdens{\giventhat*{\Theta}{y}} = \int \pdens{\giventhat*{\Theta, \theta}{y}} d\theta
+		\end{equation}
+		or
+		\begin{equation}
+			\pdens{\giventhat*{\Theta}{y}} = \frac{\pdens{\giventhat*{\Theta, \theta}{y}}}{\pdens{\giventhat*{\theta}{y, \Theta}}}
+		\end{equation}
+		This second equation is the ``marginal distribution of the hyper-prior''.
+		Note that we've got a huge caveat on the second equation as well. You can't ignore the $\Theta$-terms in the denominator! Note that $\theta$ must drop if it doesn't, then you've done something wrong!
+\end{enumerate}
+
+Our simulation strategy is as follows
+
+\begin{enumerate}
+	\item 
+		\begin{equation}
+			\Theta ^S \sim \pdens{\giventhat*{\Theta}{y}}
+		\end{equation}
+		where $S = 1, \ldots, S'$
+	\item
+		\begin{equation}
+			\Theta ^S \sim \pdens{\giventhat*{\theta}{y, \Theta ^S}}
+		\end{equation}
+		where 
+		$S = 1, \ldots, S'$
+		e.g. $\theta ^S _j \sim \text{Beta}\left( \alpha ^S + y_j, \beta^S + n_j - y_j \right)$
+		where $j = 1, \ldots, J$ and $S = 1, \ldots, S'$
+\end{enumerate}
+
+Our next two examples are going to be examples of predictions.
+\begin{enumerate}
+	\item 
+		Predict the number of successes in some number of patients at hospital $j$.
+	\item
+		Predict the number of successes $\tilde{n}$ trials at $(J + 1)$st hospital.
+\end{enumerate}
+
+\begin{equation}
+	\tilde{\theta} ^S \sim \text{Beta}(\alpha ^S, \beta ^S)
+\end{equation}
+where $S = 1, \ldots, S'$
+\begin{equation}
+	\tilde{y} ^S \sim \text{Binom}\left( \tilde{n}, \tilde{\theta} ^S \right)
+\end{equation}
+where again $S = 1, \ldots, S'$.
+
+Example: Consider the data in Table $5.1$ on page 102
+
+There are $J = 71$ experiments and they are similar, but not identical.
+
+Let $n_j$ be the number of rats in a given experiment $j$ and $y_j$ is the
+number of rats that got tumors in the $j$th experiment.
+
+So our data consists of $\left( n_j, y_j \right)$ for $j = 1, \ldots, J$ where $j = 71$.
+What we are interested is $\theta _j$ which is the true tumor rate in experiment $j$.
+
+Then $\left( \giventhat*{y_j}{\theta} \right) \sim \text{Binom}\left( n_j, \theta_j \right)$.
+
+%So we'll say that $\giventhat*{\left( \theta _1, \ldots, \theta_J \right)}{\alpha, \beta} \sim \text{Beta}(\alpha, \beta)$ and let $\left( \alpha, \beta \right) \sim \pdens{\alpha, \beta}$.
+
+Well what's the hyperprior? First we have to talk about what we want as priors.
+
+$\mu = \frac{\alpha}{\alpha + \beta}$ as our prior mean and $\psi = \alpha + \beta$ as our prior ``sample size''.
+
+So we could do $\pdens{\mu, \psi} \propto \psi ^{-1}$ where $\mu \sim \text{Uniform}(0, 1)$ and $\psi \sim \text{Gamma(0, 0)}$ (note that this is improper) so that $\pdens{\mu, \psi} \propto 1$.
+
+This means that $\pdens{\alpha, \beta} \propto \left( \alpha + \beta \right) ^{-2}$.
+Gelman et al. take $\pdens{\mu, \psi} \propto \psi^{-\frac{3}{2}}$ which implies that $\pdens{\alpha, \beta} \propto \left( \alpha + \beta \right) ^{- \frac{3}{2}}$ (see pages 110 and 111) and exercise 5.9 for more.
+
+So now we have enough to calculate the posterior.
+
+\begin{align*}
+	\pdens{\giventhat*{\theta, \alpha, \beta}{y}} &\propto \pdens{\alpha, \beta}\pdens{\giventhat*{\theta}{\alpha, \beta}} \pdens{\giventhat*{y}{\theta}}\\
+	&\propto \left( \alpha + \beta \right) ^{-2} \prod _{j = 1} ^J \frac{\Gamma (\alpha + \beta)}{\Gamma (\alpha) \Gamma (\beta)} \theta _j ^{\alpha - 1} (1 - \theta) ^{\beta - 1} \prod _{j = 1} ^J \theta _j ^{y_j} \left( 1 - \theta _j \right) ^{n_j - y_j}
+\end{align*}
+This means that $\pdens{\giventhat*{\theta}{y, \alpha, \beta}} \propto \prod _{j = 1} ^J \frac{\Gamma (\alpha + \beta + n_j)}{\Gamma (\alpha + y _j) \Gamma (\beta + n_j - y_j)} \theta ^{\alpha + y_j - 1} _j \left( 1 - \theta _j \right) ^{\beta + n_j - y_j - 1}$.
+
+So we get that
+\begin{equation}
+	\pdens{\giventhat*{\alpha, \beta}{y}} = \frac{\pdens{\giventhat*{\alpha, \beta, \theta}{y}}}{\pdens{\giventhat*{\theta}{y, \alpha, \beta}}}
+\end{equation}
+Note that the $\theta$'s should drop out otherwise we've done something wrong.
+
+This is in turn proportional to
+\begin{equation}
+	\left( \alpha + \beta \right) ^{-2} \prod _{j = 1} ^J \frac{\Gamma (\alpha + \beta)}{\Gamma (\alpha) \Gamma(\beta)} \frac{\Gamma (\alpha + y) \Gamma (\beta + n_j - y)}{\Gamma (\alpha + \beta + n_j)}.
+\end{equation}
+
+If we wanted to graph this, we could do a contour plot.
+For example we could plot $\pdens{\giventhat*{\alpha, \beta}{y}}$ and $\pdens{\giventhat*{\mu, \psi}{y}} = \pdens{\giventhat*{\frac{\alpha}{\alpha + \beta}, \alpha + \beta}{y}}$.
+We instead change our variables using logit
+\begin{equation}
+	\pdens{\giventhat*{\log \left( \frac{\mu}{1 - \mu} \right), \log \left( \psi \right)}{y}} = \pdens{\giventhat*{\log\left( \frac{\alpha}{\beta} \right), \log \left( \alpha + \beta \right)}{y}}
+\end{equation}
+If you work through the transformations (optional exercise for the reader), you will get
+\begin{equation}
+	\pdens{\giventhat*{\log \left( \frac{\alpha}\beta \right), \log \left( \alpha + beta \right)}{y}} = \alpha \beta \pdens{\giventhat*{\alpha, \beta}{y}}
+\end{equation}
+
+We have the next steps:
+\begin{enumerate}
+	\item 
+		Our immediate next step then is to draw the contour plot of $\pdens{\giventhat*{\log\left( \frac{\alpha}{\beta} \right) \log \left( \alpha + \beta \right)}{y}}$. 
+	\item
+		Random sample from $\pdens{\giventhat*{\log \left( \frac{\alpha}{\beta} \right), \log \left( \alpha + \beta \right)}{y}}$. This part is easy we just back transform.
+	\item
+		Random sample from $\pdens{\giventhat*{\theta}{y}}$.
+		How exactly do we do that?
+\end{enumerate}
+
+We'll pick from here and finish this off next class.
+
+\end{document}

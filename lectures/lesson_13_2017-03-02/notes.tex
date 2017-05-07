@@ -1,0 +1,90 @@
+\documentclass{article}
+
+\usepackage{amsmath, amssymb, amsfonts, amsthm, booktabs, verbatim, mathtools, listings, xcolor}
+
+%\numberwithin{equation}{section}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{definition}{Definition}
+\newtheorem{problem}{Problem}
+
+% Surrounding angular brackets
+\newcommand{\surang}[1]{\langle #1 \rangle}
+\makeatletter
+\newcommand{\@giventhatstar}[2]{#1\,\middle|\,#2}
+\newcommand{\@giventhatnostar}[3][]{#1(#2\,#1|\,#3#1)}
+\newcommand{\giventhat}{\@ifstar\@giventhatstar\@giventhatnostar}
+\makeatother
+\newcommand{\probof}[1]{\text{Pr}\left( #1 \right)}
+\newcommand{\pdens}[1]{\text{p}\left( #1 \right)}
+\newcommand{\variance}[1]{\text{Var}\left( #1 \right)}
+
+\lstset{ %
+  language=R,                     % the language of the code
+  basicstyle=\footnotesize,       % the size of the fonts that are used for the code
+  numbers=left,                   % where to put the line-numbers
+  numberstyle=\tiny\color{gray},  % the style that is used for the line-numbers
+  stepnumber=1,                   % the step between two line-numbers. If it's 1, each line
+                                  % will be numbered
+  numbersep=5pt,                  % how far the line-numbers are from the code
+  backgroundcolor=\color{white},  % choose the background color. You must add \usepackage{color}
+  showspaces=false,               % show spaces adding particular underscores
+  showstringspaces=false,         % underline spaces within strings
+  showtabs=false,                 % show tabs within strings adding particular underscores
+  frame=single,                   % adds a frame around the code
+  rulecolor=\color{black},        % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. commens (green here))
+  tabsize=2,                      % sets default tabsize to 2 spaces
+  captionpos=b,                   % sets the caption-position to bottom
+  breaklines=true,                % sets automatic line breaking
+  breakatwhitespace=false,        % sets if automatic breaks should only happen at whitespace
+  title=\lstname,                 % show the filename of files included with \lstinputlisting;
+                                  % also try caption instead of title
+  keywordstyle=\color{blue},      % keyword style
+  commentstyle=\color{red},   % comment style
+  stringstyle=\color{black},      % string literal style
+  escapeinside={\%*}{*)},         % if you want to add a comment within your code
+  morekeywords={*,...}            % if you want to add more keywords to the set
+} 
+
+\begin{document}
+
+AIC favors full pooling over no pooling, but has nothing to say about the hierarchical model. (We're at 3 down and 9 to go).
+
+Deviance Information Criterion:
+
+There are two problems with AIC.
+\begin{enumerate}
+	\item 
+		AIC is not Bayesian. It doesn't account for prior information.
+	\item
+		The number of parameters is not well-defined.
+\end{enumerate}
+
+For example in our 8 schools example, we have unpooled $\tau = \infty$ which
+implies that $k = 8$, the fully pooled $\tau = 0$, which implies $k = 1$, and
+the hierarchical model $\tau \propto 1$ which implies $1 < k < 8$.
+
+To solve the first problem we replace $\hat{\theta} _{\text{mle}}$ with $\hat{\theta}_{\text{Bayes}} = E\left( \giventhat*{\theta}{y} \right)$
+
+To solve the second problem we replace $k$ with a data-based biased correction, i.e. $2 \left( \log \pdens{\giventhat*{y}{\hat{\theta}_{\text{Bayes}}}} - E_{\text{post}}\left( \log \pdens{\giventhat*{y}{\theta}} \right) \right)$.
+
+In our particular case we have
+\begin{equation}
+	\theta _{j, \text{Bayes}} = E\left( \giventhat*{\theta _j}{y} \right) = y_j = \hat{\theta} _{j, \text{mle}}
+\end{equation}`
+so
+\begin{align}
+	\log \pdens{\giventhat*{y}{\hat{\theta} _\text{Bayes}}} &= \prod _{j = 1} ^J \frac{1}{\sigma _j \sqrt{2 \pi}} e ^{-\frac{1}{2 \sigma _j} \left( y_j - y_j \right)}
+\end{align}
+
+In the case of DIC we have $p_{DIC} = 2 \variance{\giventhat*{\log \pdens{\giventhat*{y}{\theta}}}{y}}$.
+Note that this ends up being the same as AIC.
+
+After eliding a bunch of calculations, we get that $DIC = -2 \log \pdens{\giventhat*{y}{\hat{\theta} _\text{Bayes}}} + 2 p_{\text{DIC}} = -2\left( -\frac{J}{2} \log (2 \pi) - \sum \log \sigma _j \right) + 2 \cdot 8 = 54.6 + 16 = 70.6$ which is the same answer as AIC.
+
+Note that DIC should agree with AIC since the two problems that DIC fixes weren't problems for the model.
+
+So in the case that we have complete pooling, namely that $\tau = 0$ we can 
+
+\end{document}

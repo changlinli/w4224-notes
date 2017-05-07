@@ -1,0 +1,147 @@
+\documentclass{article}
+
+\usepackage{amsmath, amssymb, amsfonts, amsthm, booktabs, verbatim, mathtools, listings, xcolor}
+
+%\numberwithin{equation}{section}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{definition}{Definition}
+\newtheorem{problem}{Problem}
+
+% Surrounding angular brackets
+\newcommand{\surang}[1]{\langle #1 \rangle}
+\makeatletter
+\newcommand{\@giventhatstar}[2]{#1\,\middle|\,#2}
+\newcommand{\@giventhatnostar}[3][]{#1(#2\,#1|\,#3#1)}
+\newcommand{\giventhat}{\@ifstar\@giventhatstar\@giventhatnostar}
+\makeatother
+\newcommand{\probof}[1]{\text{Pr}\left( #1 \right)}
+\newcommand{\pdens}[1]{\text{p}\left( #1 \right)}
+\newcommand{\variance}[1]{\text{Var}\left( #1 \right)}
+
+\lstset{ %
+  language=R,                     % the language of the code
+  basicstyle=\footnotesize,       % the size of the fonts that are used for the code
+  numbers=left,                   % where to put the line-numbers
+  numberstyle=\tiny\color{gray},  % the style that is used for the line-numbers
+  stepnumber=1,                   % the step between two line-numbers. If it's 1, each line
+                                  % will be numbered
+  numbersep=5pt,                  % how far the line-numbers are from the code
+  backgroundcolor=\color{white},  % choose the background color. You must add \usepackage{color}
+  showspaces=false,               % show spaces adding particular underscores
+  showstringspaces=false,         % underline spaces within strings
+  showtabs=false,                 % show tabs within strings adding particular underscores
+  frame=single,                   % adds a frame around the code
+  rulecolor=\color{black},        % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. commens (green here))
+  tabsize=2,                      % sets default tabsize to 2 spaces
+  captionpos=b,                   % sets the caption-position to bottom
+  breaklines=true,                % sets automatic line breaking
+  breakatwhitespace=false,        % sets if automatic breaks should only happen at whitespace
+  title=\lstname,                 % show the filename of files included with \lstinputlisting;
+                                  % also try caption instead of title
+  keywordstyle=\color{blue},      % keyword style
+  commentstyle=\color{red},   % comment style
+  stringstyle=\color{black},      % string literal style
+  escapeinside={\%*}{*)},         % if you want to add a comment within your code
+  morekeywords={*,...}            % if you want to add more keywords to the set
+} 
+
+\begin{document}
+
+This is going to be a grab bag of things since I was late to class and missed the previous lecture.
+
+Need to know about posterior mode (probably something like MAP?).
+
+Also need to figure out what the notation for $\hat{\theta}$ is.
+
+Also need to know about $I$, Fisher Information.
+
+Let's do an example, $\left(\giventhat*{y_1, \ldots, y_n}{\theta} \right) \sim \text{ iid } \text{Exp}(\theta)$ .
+
+This means that $\pdens{\giventhat*{y}{\theta}} = \prod _{i = 1} ^n p \theta e^{-\theta y_i}$
+
+Suppose that $\theta \sim \text{Gamma}(\alpha, \beta)$.
+
+Then $\pdens{\theta} \propto \theta^{\alpha - 1} e^{-\beta \theta}$.
+
+\begin{align*}
+	\pdens{\giventhat*{\theta}{y}} &\propto \pdens{\theta}\pdens{\giventhat*{y}{\theta}}\\
+	&\propto \theta^{\alpha - 1}e^{-\beta \theta} e^n e ^{-\theta \sum y_i}\\
+	&\propto \theta ^{\alpha + n - 1} e^{- (\beta + \sum y_i) \theta}
+\end{align*}
+
+We then use 
+
+\begin{equation}
+	\left( \giventhat*{\theta}{y} \right) \sim \text{Gamma}\left( \alpha + n, \beta + \sum y_i \right)
+\end{equation}
+
+Use the gamma ($\chi^2$) distribution theory to compute the exact 95\% posterior interval.
+
+Actually it turns out we don't need the $\chi^2$ distribution. Historically we
+would use a transformation to $\chi^2$ first because we had tables for the
+$\chi^2$ distribution, but these days we have the information for the Gamma
+distribution as well. So there's no need to do the long way calculation.
+
+You start with an expression for the posterior:
+
+\begin{equation}
+	\pdens{\giventhat*{\theta}{y}} \propto \theta ^{\alpha + n - 1} e^{-(\beta + \sum y_i) \theta}
+\end{equation}
+
+This yields $\log \pdens{\giventhat*{\theta}{y}} = (\alpha + n - 1) \log \theta - (\beta + \sum y_i) \theta + \cdots$.
+Then the derivative of this is $\frac{\alpha + n - 1}{\theta} - \beta + \sum y_i$, which we set equal to $0$, implying that the posterior mode is $\hat{\theta} = \frac{\alpha + n - 1}{\beta + \sum y_i}$.
+
+The second derivative is $\frac{\alpha + n - 1}{\theta ^2}$. 
+
+\begin{equation}
+	\left[ I(\hat{theta}) \right] = \frac{\hat{\theta} ^2}{\alpha + n - 1}
+\end{equation}
+
+\begin{equation}
+	\theta \sim \text{Gamma}\left( \alpha + n, \beta + \sum y_i \right)
+\end{equation}
+and
+\begin{equation}
+	\hat{\theta} \sim N\left( \frac{\alpha + n - 1}{\beta + \sum y_i}, \frac{\alpha + n - 1}{(\beta + \sum y_i) ^2} \right)
+\end{equation}
+In one sense this is the ordinary normal approximation to the gamma. In other
+sense it's not though, because we only have a guarantee for the approximation
+around the mode.
+
+The exact poseterior interval is
+\begin{lstlisting}
+	qgamma(c(0.025, 0.975), \alpha + n, \beta + \sum y_i)
+\end{lstlisting}
+and the normal approximation is
+\begin{equation}
+	\hat{\theta} \pm 1.96 \frac{\hat{\theta}}{\sqrt{\alpha + n - 1}}
+\end{equation}
+
+Example 1a (from the book):
+
+Suppose that $\alpha = 2$ and $\beta = 1$ (the prior mean is $2$ and the prior variance is $2$).
+For our data we have $n = 20$ and $\sum y_i = 25$.
+
+The exact posterior distribution is 
+
+\begin{equation}
+	\left( \giventhat*{\theta}{y} \right) \sim \text{Gamma}\left( \alpha + n = 22, \beta + \sum y_i = 26 \right)
+\end{equation}
+
+The normal approximation to this is
+
+\begin{equation}
+	\left( \giventhat*{\theta}{y} \right) \sim N\left( \hat{\theta} = \frac{\alpha + n - 1}{\beta + \sum y_i}, \frac{\sqrt{\alpha + n - 1}}{\beta + \sum y _i}\right)
+\end{equation}
+
+Let's draw them!
+
+They look like they're pretty close.
+
+Note that we calculated the approximation for the posterior gamma as as Taylor
+series around the mode. It is quite obvious that around the mode the
+approximation is excellent and gets worse as we move further away.
+
+\end{document}

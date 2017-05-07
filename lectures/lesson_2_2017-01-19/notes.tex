@@ -1,0 +1,122 @@
+%        File: notes.tex
+%     Created: Thu Jan 19 06:00 PM 2017 E
+% Last Change: Thu Jan 19 06:00 PM 2017 E
+%
+\documentclass[a4paper]{article}
+
+\usepackage{amsmath, amssymb, amsthm}
+
+\begin{document}
+
+We're today talking about posterior intervals.
+
+Indeed we want to be able to make predictions with our newest Bayes tools at hand.
+
+%$y = \text{observed_data}$
+
+This yields more stuff.
+
+
+Using thee law of total probability, we arrive at the following
+
+%$y = 5$
+
+\[
+	\int _\Theta \int _A p(z \mid \theta, y) p(\theta \mid y) dz d\theta
+\]
+
+%\[
+	%\int _\A \int _\Theta p z \mid \theta \mid z
+%\]
+
+Two coins one has the probability of heads as $0.95$ the other has the probability of heads as $0.2$.
+
+Let $\theta$ be the coin that is selected and $y$ be the number of heads in the first ten flips. $z$ is the number of heads on the 11th flip.
+
+Suppose that our prior on $\theta$ is ``50/50'', then the probability that $\hat{y} = 1$ is $0.55$.
+
+The probability that $Pr(\hat{y} = 1 \mid y = 10) > 0.55$.
+
+Clearly $z$ and $y$ are not independent.
+
+We also have an upper bound that $Pr(\hat{y} = 1 \mid y = 10) < 0.9$. The exact number is left as an exercise to the reader.
+
+Going back to the prior predictive density of $\hat{y}$
+
+We have that $p(\hat{y}) = \int p(\theta) p (\hat{y} \mid \theta) d\theta$ and the posterior predictive is $p(\hat{y} \mid y) = \int p (\theta \mid y) p (\hat{y} \mid \theta) d\theta$.
+
+Note that these are different (and this explains why in fact we don't have independence between $\hat{y}$ and $y$).
+
+In your reading you'll read a lot about the assumption of exchangeability (rather than talking about conditional probability).
+
+Given $p(y_1, y_2 \mid \theta) = p(y_1 \mid \theta) p(y_2 \mid \theta)$, we say that $y_1$ and $y_2$ are exchangeable and conditionally independent. \emph{Note that this is not the definition of exchangeable!}. The definition of exchangeable is that $p(y_1, y_2) = p(y_2, y_1)$. Conditional independence is one way of generating this, but it is not the only way.
+
+Note that exchangeability is something that extends beyond the Bayesian context, but we will not be looking very much at it. Just keep the definition in mind because it's what Gelman uses throughout his text.
+
+(In response to a quesiton from the audience). We need more rigorous notation. We say that if $X_1, X_2$ have the joint density $f$ (i.e. $(X_1, X_2) \sim f(\cdot, \cdot)$), then if $f(a, b) = f(b, a)$ for any $a$ and $b$, then $X_1$ and $X_2$ are exchangeable.
+
+Intuitively what exchangeability means is that the labels don't matter.
+
+Let's do the first concrete problem we've done in Bayesian analaysis.
+
+\section{Binomial Data (Sections 2.1 to 2.4)}
+
+For example, let's say that $\theta = \text{population of drug users}$. We take a sample of $n$ subjects from this population and we let $y = \text{number of drug users in sample}$.
+
+A good model for this data is $p(y \mid \theta) = \binom{n}{y} \theta ^y (1 - \theta) ^{n - y}$ where $y = 0, 1, \ldots, n$, i.e. .$y \mid \theta \sim \text{Binomial}(n, \theta)$.
+
+The tricky part of this problem is figuring out what our prior is. It's difficult to nail down an exact prior, but perhaps we can at least say what a good family of priors might look like.
+
+\begin{align}
+	p(\theta) = \frac{\Gamma (\alpha + \beta)}{\Gamma(\alpha) \Gamma(\beta)}\theta ^{\alpha - 1} \theta ^{\beta - 1}
+\end{align}
+
+Why?
+
+\begin{align}
+	p(\theta \mid y) = \frac{p(\theta) p(y \mid \theta)}{\int p(\theta) p(y \mid \theta) d\theta} &= \frac{\Gamma(\alpha + \beta)}{\Gamma(\alpha)\Gamma(\beta)} \theta ^{\alpha - 1} (1 - \theta)^{\beta - 1} \binom{n}{y} \theta ^y (1 - \theta)^{n - y} I_{(0, 1)} (\theta) \\
+	&= \int _0 ^1 \text{Num}(\theta) d\theta \\
+	&= \frac{\theta ^{\alpha + y - 1} (1 - \theta) ^{\beta + n - y - 1}}{\int _0 ^1 \theta (\alpha + y - 1) (1 - \theta) ^{\beta + n - y - 1} d\theta} \\
+	&= \frac{\Gamma(\alpha + \beta + n)}{\Gamma (\alpha + y)\Gamma(\beta + n -y)} \theta^{\alpha + y - 1} (1 - \theta) ^{\beta + n - y - 1} I _{(0, 1)} (\theta)
+\end{align}
+
+Here's the bottom line:, if $\theta \sim \text{Beta}(\alpha, \beta)$ and $y \mid \theta \sim \text{Binom}(n, \theta)$ then $\theta \mid y \sim \text{Beta}(\alpha + y, \beta + n - y)$.
+
+And here is a much easier proof (and an example of why we don't care about normalizing constants).
+
+Given that $p(\theta) \propto \theta ^{\alpha - 1} (1 - \theta) ^{\beta - 1}$ and $p(y \mid \theta) \propto _\theta \theta ^y (1 - \theta) ^{n - y}$, then we have that $p(\theta \mid y) \propto p(\theta) p(y \mid \theta) \propto \theta ^{\alpha + y - 1} (1 - \theta) ^{\beta + n - y - 1}$.
+
+And we're done!
+
+What we've just proven is that the beta (family) prior is conjugate for the
+binomial likelihood. Conjugate means that the posterior has the same parametric
+form as the prior.
+
+The beta prior is DAP (data augmentation prior) for binomial data. I don't have
+a precise definition for what a data augmentation prior is, it's more of a
+rough intuition. What it means is this:
+
+The $\text{Beta}(\alpha, \beta)$ prior ``augments'' binomial data with another
+$\alpha$ successes and $\beta$ fails in $\alpha + \beta$ trials.
+
+Here's another interesting thing that is not unique to the Beta prior, but does apply to it. $\theta \sim \text{Beta}(\alpha, \beta) \Rightarrow E(\theta) = \frac{\alpha}{\alpha + \beta} = \mu$. Let $\psi = \alpha + \beta$.
+
+The variance of $\theta$ is $\frac{\alpha\beta}{(\alpha + \beta)(\alpha + \beta + 1)} = \frac{\mu (1 - \mu)}{\psi + 1}$
+
+Let $\mu \in (0, 1)$ and $\psi > 0$, then $\theta \mid y \sim \text{Beta}(\alpha + y, \beta + n - y)$.
+
+$E(\theta \mid y) = \frac{\alpha + y}{\alpha + \beta + n}$
+
+For homework, you'll prove that $E(\theta \mid y) = (\frac{\psi}{\psi + n})\mu + (\frac{n}{\psi + n})(\frac{y}{n})$.
+
+The posterior expected proportion of our population that are drug users is the
+weighted average of the prior proportion and the sample proportion weighted by
+the relative sample sizes. Remember that we said that an $\text{Beta}(\alpha,
+\beta)$ was like $\alpha$ successes in $\alpha + \beta$ trials? In other words
+$\frac{\alpha}{\alpha + \beta} = \mu$ proportion in $\alpha + \beta = \psi$
+trials.
+
+It is generally the case that posterior mean will be the weighed average of the
+prior mean and the sample mean (weighted by the size of the sample).
+
+\end{document}

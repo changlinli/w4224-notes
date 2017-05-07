@@ -1,0 +1,138 @@
+\documentclass{article}
+
+\usepackage{amsmath, amssymb, amsfonts, amsthm, booktabs, verbatim, mathtools, listings, xcolor}
+
+%\numberwithin{equation}{section}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{definition}{Definition}
+\newtheorem{problem}{Problem}
+
+% Surrounding angular brackets
+\newcommand{\surang}[1]{\langle #1 \rangle}
+\makeatletter
+\newcommand{\@giventhatstar}[2]{#1\,\middle|\,#2}
+\newcommand{\@giventhatnostar}[3][]{#1(#2\,#1|\,#3#1)}
+\newcommand{\giventhat}{\@ifstar\@giventhatstar\@giventhatnostar}
+\makeatother
+\newcommand{\probof}[1]{\text{Pr}\left( #1 \right)}
+\newcommand{\pdens}[1]{\text{p}\left( #1 \right)}
+\newcommand{\variance}[1]{\text{Var}\left( #1 \right)}
+
+\lstset{ %
+  language=R,                     % the language of the code
+  basicstyle=\footnotesize,       % the size of the fonts that are used for the code
+  numbers=left,                   % where to put the line-numbers
+  numberstyle=\tiny\color{gray},  % the style that is used for the line-numbers
+  stepnumber=1,                   % the step between two line-numbers. If it's 1, each line
+                                  % will be numbered
+  numbersep=5pt,                  % how far the line-numbers are from the code
+  backgroundcolor=\color{white},  % choose the background color. You must add \usepackage{color}
+  showspaces=false,               % show spaces adding particular underscores
+  showstringspaces=false,         % underline spaces within strings
+  showtabs=false,                 % show tabs within strings adding particular underscores
+  frame=single,                   % adds a frame around the code
+  rulecolor=\color{black},        % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. commens (green here))
+  tabsize=2,                      % sets default tabsize to 2 spaces
+  captionpos=b,                   % sets the caption-position to bottom
+  breaklines=true,                % sets automatic line breaking
+  breakatwhitespace=false,        % sets if automatic breaks should only happen at whitespace
+  title=\lstname,                 % show the filename of files included with \lstinputlisting;
+                                  % also try caption instead of title
+  keywordstyle=\color{blue},      % keyword style
+  commentstyle=\color{red},   % comment style
+  stringstyle=\color{black},      % string literal style
+  escapeinside={\%*}{*)},         % if you want to add a comment within your code
+  morekeywords={*,...}            % if you want to add more keywords to the set
+} 
+
+\begin{document}
+
+We're talking about the mixed schools model for hierarchical Bayes.
+
+In particular, we're talking about striking the balance between a completely pooled model and a model with absolutely no pooling.
+
+One way of achieving an optimal mix between a completely pooled model and a model with absolutely no pooling is to moderate the amount of pooling with a parameter $\lambda$.
+
+That is
+\begin{equation}
+	\hat{\theta _j} = \lambda _j y_j + \left( 1 - \lambda _j \right) \bar{y} ^*
+\end{equation}
+for $0 < \lambda _j < 1$.
+
+So we're going to do $\left( \giventhat*{y_j}{\theta} \right) \sim \text{ independent } N\left( \theta _j, \sigma _j ^2 \right)$.
+
+We have
+\begin{equation}
+	\left( \giventhat*{\theta _1, \ldots, \theta _J}{\mu, \tau} \sim \text{ iid } N\left( \mu, \tau ^2 \right) \right)
+\end{equation}
+which yields
+\begin{equation}
+	\left( \mu, \tau \right) \sim \pdens{\mu, \tau} = \pdens{\giventhat*{\mu}{tau}}\pdens{\tau} \propto \pdens{ \theta }
+\end{equation}
+Let's come back to this equation in a bit.
+
+Recall our basic strategy for dealing with hierarchical Bayes problems: we have three analytical parts and three simulation parts.
+
+Analytic part:
+\begin{enumerate}
+	\item 
+		Calculate
+		\begin{equation}
+			\pdens{\giventhat*{\theta, \Theta}{y}} \propto \pdens{\Theta}\pdens{\giventhat*{\theta}{\Theta}} \pdens{\giventhat*{y}{\theta}}
+		\end{equation}
+	\item
+		Calculate
+		\begin{equation}
+			\pdens{\giventhat*{\theta}{\Theta, y}}
+		\end{equation}
+		which is easy if we have conjugacy.
+	\item
+		Calculate either
+		\begin{equation}
+			\pdens{\giventhat*{\Theta}{y}} = \int \pdens{\giventhat*{\theta, \Theta}{y}} d\theta
+		\end{equation}
+		or
+		\begin{equation}
+			\pdens{\giventhat*{\Theta}{y}} = \frac{\pdens{\giventhat*{\theta, \Theta}{y}}}{\pdens{\giventhat*{\theta}{\Theta, y}}}
+		\end{equation}
+\end{enumerate}
+
+Simulation part:
+\begin{enumerate}
+	\item 
+		Calculate
+		\begin{equation}
+			\Theta ^s \sim \pdens{\giventhat*{\Theta}{y}}
+		\end{equation}
+	\item
+		Calculate
+		\begin{equation}
+			\Theta ^s \sim \pdens{\giventhat*{\theta}{\Theta ^s, y}}
+		\end{equation}
+		where $s = 1, \ldots, S'$
+	\item
+		Posterior predictives (in sample and out)
+\end{enumerate}
+
+We now go into the details of a normal normal hierarchical model.
+
+NOTE THIS PART OF THE LECTURE IS A STRAIGHT COPY OF PAGES 116 AND 117
+
+I'm only adding some annotations as I find helpful.
+
+Note for the equation between 5.20 and 5.21, there's a step of simplification that's skipped.
+\begin{equation}
+	\frac{\pdens{\giventhat*{\mu, \tau}{y}}}{\pdens{\giventhat*{\mu}{\tau, y}}} \propto \frac{\pdens{\mu, \tau} \pdens{\giventhat*{y}{\mu, \tau}}}{\pdens{\giventhat*{\mu}{\tau, y}}}
+	\label{eqn:star}
+\end{equation}
+
+Note that 
+\begin{equation}
+	\pdens{\giventhat*{\tau}{y}} \propto \pdens{\tau} V_\mu ^{\frac{1}{2}}
+\end{equation}
+
+We got rid of $\mu$ in the denominator of Equation~\ref{eqn:star} by plugging in $\mu = \hat{\mu}$.
+
+\end{document}

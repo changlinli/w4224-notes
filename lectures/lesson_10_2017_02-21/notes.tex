@@ -1,0 +1,145 @@
+\documentclass{article}
+
+\usepackage{amsmath, amssymb, amsfonts, amsthm, booktabs, verbatim, mathtools, listings, xcolor}
+
+%\numberwithin{equation}{section}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{definition}{Definition}
+\newtheorem{problem}{Problem}
+
+% Surrounding angular brackets
+\newcommand{\surang}[1]{\langle #1 \rangle}
+\makeatletter
+\newcommand{\@giventhatstar}[2]{#1\,\middle|\,#2}
+\newcommand{\@giventhatnostar}[3][]{#1(#2\,#1|\,#3#1)}
+\newcommand{\giventhat}{\@ifstar\@giventhatstar\@giventhatnostar}
+\makeatother
+\newcommand{\probof}[1]{\text{Pr}\left( #1 \right)}
+\newcommand{\pdens}[1]{\text{p}\left( #1 \right)}
+\newcommand{\variance}[1]{\text{Var}\left( #1 \right)}
+
+\lstset{ %
+  language=R,                     % the language of the code
+  basicstyle=\footnotesize,       % the size of the fonts that are used for the code
+  numbers=left,                   % where to put the line-numbers
+  numberstyle=\tiny\color{gray},  % the style that is used for the line-numbers
+  stepnumber=1,                   % the step between two line-numbers. If it's 1, each line
+                                  % will be numbered
+  numbersep=5pt,                  % how far the line-numbers are from the code
+  backgroundcolor=\color{white},  % choose the background color. You must add \usepackage{color}
+  showspaces=false,               % show spaces adding particular underscores
+  showstringspaces=false,         % underline spaces within strings
+  showtabs=false,                 % show tabs within strings adding particular underscores
+  frame=single,                   % adds a frame around the code
+  rulecolor=\color{black},        % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. commens (green here))
+  tabsize=2,                      % sets default tabsize to 2 spaces
+  captionpos=b,                   % sets the caption-position to bottom
+  breaklines=true,                % sets automatic line breaking
+  breakatwhitespace=false,        % sets if automatic breaks should only happen at whitespace
+  title=\lstname,                 % show the filename of files included with \lstinputlisting;
+                                  % also try caption instead of title
+  keywordstyle=\color{blue},      % keyword style
+  commentstyle=\color{red},   % comment style
+  stringstyle=\color{black},      % string literal style
+  escapeinside={\%*}{*)},         % if you want to add a comment within your code
+  morekeywords={*,...}            % if you want to add more keywords to the set
+} 
+
+\begin{document}
+
+For homework problem number 2 (the meta-analysis of 22 studies of effects of
+beta-blockers) on assignment number 3, we have a little note.
+
+For $j = 1, \ldots, J$ where $J = 22$, for $n_{1, j}$ who got the treatment,
+$y_{i, j}$ died, for $n_{0, j}$ control people, $y_{0, j}$ died.
+
+We have
+\begin{equation}
+	y_{1, j} \sim \text{Binom} (n_{1, j}, p_{1, j})
+\end{equation}
+and
+\begin{equation}
+	y_{0, j} \sim \text{Binom} (n_{0, j}, p_{0, j})
+\end{equation}
+and we assume $y_{0, j}$ to be independent from $y_{1, j}$.
+
+The treatment effect in study $j$ is
+\begin{equation}
+	\theta _j = \log \left( \frac{p_{1, j}}{1 - p_{1, j}} \right) - \log \left( \frac{p_{0, j}}{1 - p_{1, j}} \right)
+\end{equation}
+
+This is the logs odds ratio.
+
+If $\theta _j < 0$ then we say that the treatment is effective.
+
+Define the sample odds ratio by
+\begin{equation}
+	y_j = \log \left( \frac{y_{1, j}}{n_{1, j} - y_{1, j}} \right) - \log \left( \frac[y_{0, j}]{n_{0, j} - y_{0, j}} \right)
+\end{equation}
+then
+\begin{equation}
+	y_j \sim \text{Normal}(\theta _j, \sigma _j ^2)
+\end{equation}
+and
+\begin{equation}
+	\sigma _j ^2 = \frac{1}{y_{1, j}} + \frac{1}{n _{1, j} - y_{1, j}} + \frac{1}{y_{0, j}} + \frac{1}{n_{0, j} - y_{0, j}}
+\end{equation}
+
+Huh?
+Why?
+
+This is an exercise not to be turned in for credit which we don't do in class,
+but you can do optionally if you'd like. The hint is to do the Delta Method.
+
+We are now moving on to Chapter 6, which is model checking.
+
+Recall classical model checking, e.g. linear regression.
+
+The model says $E\left( \giventhat{Y}{X = x} \right) = \beta _0 + \beta _1 x$ and $\text{Var}\left( \giventhat*{Y}{X = x} \right) = \sigma ^2$.
+
+The data $\left( x_i, y_i \right)$ has $i = 1, \ldots, n$ and $e_i = Y_i - \beta _0 - \beta_1 x_i$ have mean 0, constant variance and independence of $X_i$s.
+
+This quantity is unobservable, consider instead
+\begin{equation}
+	\hat{e_i} = y_i - \hat{\beta_0} - \hat{\beta}_1x_i
+\end{equation}
+where $\hat{\beta_0}$ and $\hat{\beta_1}$ are the least square estimates.
+
+The residuals should look like sample from population with mean $0$ and variance same for all $x$.
+
+We're not asking whether our model is true or false because we already know
+that the model is false since all models are false.  Rather ``Do the model's
+deficiencies have a noticeable effect on the substantive inferences''.
+
+The basic premise of Bayesian model checking is that if the model fits, then
+replicated data generated under the model should look ``similar'' to observed
+data for some definition of ``similar,'' i.e. it is a self-consistency check.
+
+Isn't this also the premise of classical model checking?
+
+Let's do an example and see.
+
+We'll take the example of Western Red Cedars, we say that $y_i$ is the height
+and $x_i$ is the logarithm of the diameter of the $i$th tree where we have $i =
+1, \ldots, n$ where $n = 139$.
+
+Let's do the classical linear regression and come up with
+
+\begin{equation}
+	E\left( \giventhat*{Y}{X = x} \right) = \beta _0 + \beta _ 1 x
+\end{equation}
+and
+\begin{equation}
+	\text{Var}\left( \giventhat*{Y}{X = x} \right) = \sigma ^2
+\end{equation}
+
+Let's compute $\hat{e_i} = y_i - \hat{\beta_0} - \hat{\beta_1}x$.
+
+Let's briefly look at a graphical approach (Section 6.4).
+
+If we were to plot $x_i$ against $\hat{e_i}$ we should find no trend and a
+constant variance.
+
+\end{document}

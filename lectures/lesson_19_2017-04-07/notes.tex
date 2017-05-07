@@ -1,0 +1,165 @@
+\documentclass{article}
+
+\usepackage{amsmath, amssymb, amsfonts, amsthm, booktabs, verbatim, mathtools, listings, xcolor}
+
+%\numberwithin{equation}{section}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{definition}{Definition}
+\newtheorem{problem}{Problem}
+\newtheorem{example}{Example}
+\newtheorem{exercise}{Exercise}
+
+% Surrounding angular brackets
+\newcommand{\surang}[1]{\langle #1 \rangle}
+\makeatletter
+\newcommand{\@giventhatstar}[2]{#1\,\middle|\,#2}
+\newcommand{\@giventhatnostar}[3][]{#1(#2\,#1|\,#3#1)}
+\newcommand{\giventhat}{\@ifstar\@giventhatstar\@giventhatnostar}
+\makeatother
+\newcommand{\probof}[1]{\text{Pr}\left( #1 \right)}
+\newcommand{\pdens}[1]{\text{p}\left( #1 \right)}
+\newcommand{\variance}[1]{\text{Var}\left( #1 \right)}
+
+\lstset{ %
+  language=R,                     % the language of the code
+  basicstyle=\footnotesize,       % the size of the fonts that are used for the code
+  numbers=left,                   % where to put the line-numbers
+  numberstyle=\tiny\color{gray},  % the style that is used for the line-numbers
+  stepnumber=1,                   % the step between two line-numbers. If it's 1, each line
+                                  % will be numbered
+  numbersep=5pt,                  % how far the line-numbers are from the code
+  backgroundcolor=\color{white},  % choose the background color. You must add \usepackage{color}
+  showspaces=false,               % show spaces adding particular underscores
+  showstringspaces=false,         % underline spaces within strings
+  showtabs=false,                 % show tabs within strings adding particular underscores
+  frame=single,                   % adds a frame around the code
+  rulecolor=\color{black},        % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. commens (green here))
+  tabsize=2,                      % sets default tabsize to 2 spaces
+  captionpos=b,                   % sets the caption-position to bottom
+  breaklines=true,                % sets automatic line breaking
+  breakatwhitespace=false,        % sets if automatic breaks should only happen at whitespace
+  title=\lstname,                 % show the filename of files included with \lstinputlisting;
+                                  % also try caption instead of title
+  keywordstyle=\color{blue},      % keyword style
+  commentstyle=\color{red},   % comment style
+  stringstyle=\color{black},      % string literal style
+  escapeinside={\%*}{*)},         % if you want to add a comment within your code
+  morekeywords={*,...}            % if you want to add more keywords to the set
+} 
+
+\begin{document}
+
+Returning to the hierarchy we had last time, we are going to focus on the Monte-Carlo portion of the hierarchy.
+
+\begin{enumerate}
+	\item 
+		\begin{equation}
+			\theta^1, \ldots, \theta ^S \sim _\text{iid} \pdens{\giventhat*{\theta}{y}}
+		\end{equation}
+		Inverse CDF (direct simulation ``exact''). An example of this is the grid approximation we've been doing (although any problem that we did by grid approximation we could've done by numerical integration).
+		Another example is rejection sampling.
+	\item
+		Importance sampling.
+	\item
+		Markov Chain Monte Carlo.
+
+		\begin{example}
+			For example, let's say we wanted to estimate the mean height of people seated in this room by sampling from seats in this room.
+
+			Intuitively MCMC means that I number everyone in the room from $1$ to $n$ (converting everybody to be a single circle).
+			Then I start at some random person and then flip a coin.
+			If it comes up heads I choose the person to the left and if it comes up tails I choose the person to the right. 
+			Then that person becomes the new starting point and I flip a coin again.
+
+			What are the characteristics of this approach?
+			\begin{enumerate}
+				\item
+					Inefficient (more samples to get the same amount of information) since I might choose many of the same people over and over again
+					In MCMC I can only go ``one'' hop in any step whereas if you had some sort of i.i.d. sampling method you can make a physically large hop.
+				\item
+					But I don't have to have some global way of gathering up everyone's seats and grabbing from that.
+			\end{enumerate}
+		\end{example}
+
+		\begin{example}
+			We can refine this example to think about what would happen if we wanted to estimate the mean height of all who people in the greater population live with someone seated in this room.
+			We could do this with i.i.d. sampling by giving everyone in the room as many chips as there are people in his/her household and label the chips with the average height of the household.
+			Then randomly sample as normal.
+
+			In MCMC we would still do a random walk around the room.
+			I would just make it more likely that I move to a person with a larger household and less likely that I move to a person with a smaller household when going to the left or the right.
+		\end{example}
+
+		\begin{example}
+			Sampling from a complicated posterior distribution, in particular one for which it is infeasible to sample $\theta ^1, \ldots, \theta ^S \sim _\text{iid} \pdens{\giventhat*{\theta}{y}}$, we'll settle for $\left\{ \theta ^s \right\}$ which is a partial realization of a Markov chain whose stationary distribution is $\pdens{\giventhat*{\theta}{y}}$.
+		\end{example}
+
+		\begin{definition}
+			Because of the Markov property, we can describe a Markov Chain as a matrix of probabilities mapping a particular state to the probability that it will reach another state, i.e. as a linear operator.
+			The stationary distribution of the Markov Chain is the associated eigenvector.
+
+			Alternatively if $\theta ^{t - 1} \sim S$ then $\theta ^t \sim S$ if and only if $S$ is the stationary distribution.
+		\end{definition}
+
+		An MCMC algorithm is defined by its update rule, i.e. given $\theta ^{t - 1}$, generate $\theta ^t$.
+
+		A simple example of an MCMC algorithm is the Gibbs sampler. I'm not taking notes here since it's described in 11.1 of the book.
+
+		We will not prove in this class that the Gibbs sampler actually has a stationary distribution equal to the posterior.
+
+		Another example of an MCMC algorithm is Metropolis-Hastings. Once again, I'm not taking notes here since it's described in 11.2. (Note we've ignored Metropolis altogether in lecture).
+		
+		\begin{proposition}
+			In the Metropolis-Hastings algorithm, if $\theta ^{t - 1} \sim \pdens{\giventhat*{\theta}{y}}$ then $\theta ^t \sim \pdens{\giventhat*{\theta}{y}}$.
+		\end{proposition}
+		\begin{proof}
+			Let $\theta _a$ and $\theta _b$ be any two points and suppose WLOG that
+			\begin{equation}
+				\pdens{\giventhat*{\theta _b}{y}} J\left( \giventhat*{\theta _a}{\theta _b} \right) > \pdens{\giventhat*{\theta _a}{y}} J \left( \giventhat*{\theta _b}{\theta _a} \right)
+			\end{equation}
+			(WLOG because we can swap labels of $b$ and $a$ if necessary).
+
+			The joint density of $(\theta ^{t - 1}, \theta ^t)$ satisfies 
+			\begin{equation}
+				\pdens{\theta ^{t - 1} = \theta _a, \theta ^t = \theta _b} = \pdens{\giventhat*{\theta _a}{y}} J\left( \giventhat*{\theta _b}{\theta _a} \right) \cdot 1
+			\end{equation}
+			and
+			\begin{align*}
+				\pdens{\theta ^t = \theta _a, \theta ^{t - 1} = \theta _b} &= \pdens{\giventhat*{\theta _b}{y}} J\left( \giventhat*{\theta _a}{\theta _b} \right) \frac{\pdens{\giventhat*{\theta _a}{y}}}{\pdens{\giventhat*{\theta _b}{y}}} \frac{J\left( \giventhat*{\theta _b}{\theta _a} \right)}{J\left( \giventhat*{\theta _a}{\theta _b} \right)}\\
+				&= \pdens{\giventhat*{\theta _a}{y}} J\left( \giventhat*{\theta _b}{\theta _a} \right)
+			\end{align*}
+
+			Thus $\left( \theta ^t, \theta ^{t - 1} \right)$ has the same joint distribution as $\left( \theta ^{t - 1}, \theta ^t \right)$ and thus $\theta ^t$ has the same marginal distribution as $\theta ^{t - 1}$.
+		\end{proof}
+
+		Up to now we haven't described how to actually make a jump proposal $J$.
+		Here's some ways of doing it.
+		\begin{enumerate}
+			\item 
+				\begin{equation}
+					J\left( \giventhat*{\theta ^\star}{\theta ^{t - 1}} \right) = J\left( \theta ^\star \right)
+				\end{equation}
+				We call this the M-H independence sampler.
+
+				\begin{exercise}
+					Think about rejection sampling with proposal density $g\left( \cdot \right)$ vs importance sampling with $\theta ^S \sim g\left( \theta \right)$ vs MHIS with $J\left( \giventhat*{\theta ^\star}{\theta ^{t - 1}} \right) = J\left( \theta ^\star \right) = g\left( \theta ^\star \right)$.
+				\end{exercise}
+
+				The M-H ratio $r$ simplifies a little bit here.
+				\begin{equation}
+					r\left( \theta ^{t - 1}, \theta ^\star \right) = \frac{\pdens{\giventhat*{\theta ^\star}{y}}}{\pdens{\giventhat*{\theta ^{t - 1}}{y}}} \frac{J\left( \theta ^{t - 1} \right)}{J \left( \theta ^\star \right)}
+				\end{equation}
+			\item
+				Another choice of $J$ is $J\left( \giventhat*{\theta ^\star}{\theta ^t} \right) = g\left( \theta ^\star - \theta ^{t - 1} \right)$ where $g$ is symmetric about $0$.
+				We call this Metropolis Random Walk, or just Metropolis.
+
+				The M-H ratio $r$ simplifies quite a bit here.
+				\begin{equation}
+					r\left( \theta ^{t - 1}, \theta ^\star \right) = \frac{\pdens{\giventhat*{\theta ^\star}{y}}}{\pdens{\giventhat*{\theta ^{t - 1}}{y}}}
+				\end{equation}
+		\end{enumerate}
+\end{enumerate}
+
+\end{document}
