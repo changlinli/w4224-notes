@@ -2,6 +2,8 @@
 
 \usepackage{amsmath, amssymb, amsfonts, amsthm, booktabs, verbatim, mathtools, listings, xcolor}
 \usepackage{hyperref}
+\usepackage{tikz}
+\usetikzlibrary{arrows, shapes}
 
 %\numberwithin{equation}{section}
 \newtheorem{theorem}{Theorem}
@@ -20,7 +22,7 @@
 \newcommand{\giventhat}{\@ifstar\@giventhatstar\@giventhatnostar}
 \makeatother
 \newcommand{\probof}[1]{\text{Pr}\left( #1 \right)}
-\newcommand{\pdens}[1]{\text{p}\left( #1 \right)}
+\newcommand{\pdens}[1]{p\left( #1 \right)}
 \newcommand{\variance}[1]{\text{Var}\left( #1 \right)}
 
 \lstset{ %
@@ -51,14 +53,120 @@
 } 
 
 \begin{document}
+\tikzstyle{int}=[draw, fill=blue!20, minimum size=2em]
+\tikzstyle{init} = [pin edge={to-,thin,black}]
 
 \tableofcontents
 
 \section{Hierarchical Modeling}
 
+Hierarchical modeling was covered much earlier in this class, but it shows up
+prominently through the second half of this course as well and so a refresher
+is rather in order.
+Moreover, it shows up all the time in the real world and industry.
+
 Hierarchical modeling is a way of expanding the expressiveness of your model while keeping it computationally feasible.
 For a hierarchical model of $n$ levels, for each $i$th level, we assume that that level has priors whose parameters are drawn from the $i + 1$-th level (the priors for the $n$th level are fixed at model creation time and termed the ``hyperpriors'')
 In most applications we stick with $n = 2$ (and certainly do so in this class).
+See Remark~\ref{remark:hierarchical_models} for more.
+
+\begin{remark}
+	\label{remark:hierarchical_models}
+	While hierarhical models can be developed in much greater generality,
+	in class and in practice they look something like the following $2$ levels.
+
+	For purposes of notation, we'll often use $\phi$ to denote parameters
+	of the top, second level (also often called the ``hyperparameters'')
+	and use $\theta$ to denote the parameters of the lower level.
+
+	Often we think of $\theta$ as being multiple $\theta _i$s each
+	independently drawn from the distribution parametrized by $\phi$.  In
+	turn for each $\theta _i$ multiple $y _{i, j}$ are drawn from the
+	distribution parametrized by $\theta _i$.
+
+	See Figure~\ref{fig:hierarchical_model} for a graphical illustration of this.
+\end{remark}
+\begin{figure}
+	\centering
+\begin{tikzpicture}[level/.style={sibling distance=10em/#1},
+  every node/.style = {shape=rectangle, rounded corners,
+    draw, align=center,
+    top color=white, bottom color=blue!20}]]
+  \node {$\pdens{\phi}$}
+    child { node {$\pdens{\giventhat*{\theta _1}{\phi}}$} 
+        child { node {$\pdens{\giventhat*{y_{1, 1}}{\theta_1}}$} }
+        child { node {$\ldots$} }
+	child { node {$\pdens{\giventhat*{y_{1, m_1}}{\theta_1}}$}}
+    }
+    child { node {$\ldots$} 
+        child { node {$\ldots$} }
+    }
+    child { node {$\pdens{\giventhat*{\theta _n}{\phi}}$} 
+        child { node {$\pdens{\giventhat*{y_{n, 1}}{\theta_n}}$} }
+        child { node {$\ldots$} }
+	child { node {$\pdens{\giventhat*{y_{n, m_n}}{\theta_n}}$}}
+    };
+\end{tikzpicture}
+	\caption{A graphical illustration of a two-level hierarchical model. $\phi$ is the hyperparameter, the $\theta _i$s our parameters, and the $y _{i, j}$ are our observed data.}
+	\label{fig:hierarchical_model}
+\end{figure}
+
+Hierarchical modeling gives us one crucial avenue of simplification, which is that \emph{each successive layer depends only its most immediate previous layer}.
+For example, notice that the bottom layer of Figure~\ref{fig:hierarchical_model} has $\pdens{\giventhat*{y_{1, 1}}{\theta _1}}$, which is one specific example of Equation~\ref{eq:hierarchical_model}.
+\begin{equation}
+	\pdens{\giventhat*{y}{\theta, \phi}} = \pdens{\giventhat*{y}{\theta}}
+	\label{eq:hierarchical_model}
+\end{equation}
+Equation~\ref{eq:hierarchical_model} is exactly what allows us to make hierarchical models tractable.
+
+Note that for hierarchical models, generally we know
+\begin{enumerate}
+	\label{enum:hierarchical_model}
+	\item 
+		Our prior on $\phi$
+	\item
+		The distribution of $\theta$ conditioned on $\phi$
+	\item
+		The distribution of $y$ conditioned on $\theta$
+\end{enumerate}
+and the ``holy grail'' we are usually solving
+for is a posterior marginal distribution of the hyperparameters, that is
+$\pdens{\giventhat*{\phi}{y}}$.
+Because everything ``flows down'' from the top level, having the posterior
+marginal distribution of the hyperparameters lets us solve the lower levels of the
+model by conditioning on the values of the upper levels.
+
+General steps:
+\begin{enumerate}
+	\item 
+		Begin by computing the (unnormalized) joint posterior (notice how we use Equation~\ref{eq:hierarchical_model} here):
+		\begin{align*}
+			\pdens{\giventhat*{\theta, \phi}{y}}
+			&\propto \pdens{\theta, \phi} \pdens{\giventhat*{y}{\theta, \phi}}\\
+			&= \pdens{\theta, \phi} \pdens{\giventhat*{y}{\theta}}\\
+			&= \pdens{\phi} \pdens{\giventhat*{\theta}{\phi}} \pdens{\giventhat*{y}{\theta}}
+		\end{align*}
+
+		This form contains all the factors we generally have access to (see the steps outlined on page~\pageref{enum:hierarchical_model}) from the outset.
+	\item
+		Find $\pdens{\giventhat*{\theta}{\phi, y}}$, i.e. the conditional posterior density of our parameters.
+		At this point, because $\phi$ is fixed, we are in the space of usual Bayesian inference (it may help to conjure up a new random variable $\theta' = \left( \giventhat*{\theta}{\phi} \right)$ whose prior is $\pdens{\giventhat*{\theta}{\phi}}$ and on which we're doing inference given $y$) and the same caveats apply.
+		Do your best to set up your hierarchy so that $\pdens{\giventhat*{\theta}{\phi}}$ is a prior that is easy to update on given the likelihood function $\pdens{\giventhat*{y}{\theta}}$ (e.g. use a conjugate prior).
+	\item
+		Using $\pdens{\giventhat*{\theta}{\phi, y}}$ from the previous step, calculate the marginal posterior of our hyperparameters $\pdens{\giventhat*{\phi}{y}}$, i.e. the ``holy grail'' we were after in the first place.
+		Often you can use the conjunction trick (see Appendix~\ref{section:computation_tricks} on page~\pageref{section:computation_tricks}) to get Equation~\ref{eq:hierarchical_marginal_easy} which you can use to compute the marginal.
+		\begin{equation}
+			\pdens{\giventhat*{\phi}{y}} = \frac{\pdens{\theta, \phi}{y}}{\pdens{\giventhat*{\theta}{\phi, y}}}
+			\label{eq:hierarchical_marginal_easy}
+		\end{equation}
+		If that fails you'll need to turn to brute force integration.
+\end{enumerate}
+
+The standard example here is the normal-normal model.
+
+We'll see more examples later on (e.g. Example~\ref{example:faculty} on
+page~\pageref{example:faculty}) that integrate more knowledge of other things
+as well.
 
 \section{Model Comparison}
 
@@ -258,6 +366,7 @@ We can use the Gibbs sampler to help sample from
 \end{example}
 
 \begin{example}[Faculty publication rates, Homework~4.5]
+	\label{example:faculty}
 	Imagine that we have a faculty of $n$ members at some university for which we have a simple random sample of $k$ faculty members and the number of publications they have made where $k < n$.
 	Come up with a $95\%$ posterior interval for the total number of refereed publications 
 	For one of our homework problems we had an extremely naive model for trying to infer 
@@ -278,6 +387,30 @@ Note in that example we have $\sigma ^2$ fixed (instead of unknown) and have as 
 \end{example}
 
 \appendix
+
+\section{Computational Tricks}
+\label{section:computation_tricks}
+
+Analytically, Bayesian statistics is very simple.
+There's only so many algebraic manipulations you can do.
+
+Here is a short toolbox of what you might think of as ``rewrite rules'' that can often rewrite your equation to make it more tractable.
+Comes in handy on tests, homework, and the real world alike.
+
+\begin{enumerate}
+	\item 
+		Bayes' Rule: This one is pretty self-explanatory. Often comes in handy in its unnormalized version.
+		\begin{equation}
+			\pdens{\giventhat*{\theta}{y}} = 
+			\label{<++>}
+		\end{equation}<++>
+	\item
+	\item
+		Condition Pruning: The hallmark of the hierarchical model, but often crops in decision analysis underlies the theory behind MCMC. 
+		Stay on the lookout for when one event entails another or when one random variable depends on another only indirectly through an intermediate random variable.
+	\item
+		Recognition of integrals of 
+\end{enumerate}<++>
 
 \section{Rough order as covered in class}
 
