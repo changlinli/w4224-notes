@@ -321,19 +321,30 @@ We can then sample from a $\text{Uniform}(0, 1)$ distribution and then take the 
 Here our translation strategy is more or less ``wave your hands'' and assume that your discrete approximation is a good approximation of your target distribution and therefore the sample generated from the discrete approximation is a good approximation of a sample generated from your target distribution.
 
 \begin{itemize}
-	\item[Pros]
-		Simple and straightforward, both to implement and in its theoretical justification.
-		Any discrete approximation with bounded support can be made arbitrary close to the target distribution by simply decreasing the size of the discretization step and increasing the bounds of its support.
-	\item[Cons]
-		Can be (potentially very) inaccurate in the presence of ``spiky'' target distributions and/or distributions that are ``spread out'' (i.e. that have significantly non-zero values over a large subset of its domain).
-		This is a result of deficiencies in the discretization step and bounds of the support respectively.
-		The solution to these deficiencies, i.e. decreasing the size of the discretization step and increasing the bounds of the support can drastically increase computational resources required to calculate the discrete inverse CDF, especially in the presence of multivariate distributions with many variates.
+	\item[Pros:]
+		\begin{enumerate}
+			\item 
+				Simple and straightforward, both to implement and in its theoretical justification.
+			\item
+				Any discrete approximation with bounded support can be made arbitrary close to the target distribution by simply decreasing the size of the discretization step and increasing the bounds of its support.
+		\end{enumerate}
+	\item[Cons:]
+		\begin{enumerate}
+			\item 
+				Can be (potentially very) inaccurate in the presence of ``spiky'' target distributions and/or distributions that are ``spread out'' (i.e. that have significantly non-zero values over a large subset of its domain).
+				This is a result of deficiencies in the discretization step and bounds of the support respectively.
+			\item
+				The solution to these deficiencies, i.e. decreasing the size of the discretization step and increasing the bounds of the support can drastically increase computational resources required to calculate the discrete inverse CDF, especially in the presence of multivariate distributions with many variates.
+		\end{enumerate}
 \end{itemize}
 
 \subsection{Rejection Sampling}
 
 The grid approximation method can be problematic because of its discrete and bounded nature, so why not try to tackle that by having a continuous source distribution?
 That is exactly what the rejection sampling method does.
+
+Our source distribution can be any distribution with the same domain as our target distribution so long as the source distribution can be scaled to always be larger than the target distribution.
+That is if our source distribution has density function $g$ and our target distribution has density function $f$, there is a $k$ such that for all $x$ in our domain, $kg(x) \ge f(x)$.
 
 \subsection{Markov Chain Monte Carlo}
 
@@ -401,9 +412,8 @@ Comes in handy on tests, homework, and the real world alike.
 	\item 
 		Bayes' Rule: This one is pretty self-explanatory. Often comes in handy in its unnormalized version.
 		\begin{equation}
-			\pdens{\giventhat*{\theta}{y}} = 
-			\label{<++>}
-		\end{equation}<++>
+			\pdens{\giventhat*{\theta}{y}} = \frac{\pdens{\theta} \pdens{\giventhat*{y}{\theta}}}{y} \propto \pdens{\theta} \pdens{\giventhat*{y}{\theta}}
+		\end{equation}
 	\item
 	\item
 		Condition Pruning: The hallmark of the hierarchical model, but often crops in decision analysis underlies the theory behind MCMC. 
